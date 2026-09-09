@@ -1,0 +1,104 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/client/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Chip, ChipRow } from "@/components/ui/chip";
+import { SectionTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { gbp } from "@/lib/utils";
+import type { AccommodationProfile, Profile, Purchase } from "@/lib/types";
+import type { BudgetSummary } from "@/lib/budget/math";
+
+const PRESETS = [100, 200, 300, 500];
+
+export function MeClient({ profile, accommodations, budget, purchases, mode, email, providers }: { profile: Profile; accommodations: AccommodationProfile[]; budget: BudgetSummary; purchases: Purchase[]; mode: string; email: string | null; providers: Record<string, unknown> }) {
+  const router = useRouter();
+  const [amount, setAmount] = useState(budget.budget?.toString() ?? "");
+  const [saving, setSaving] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const acc = accommodations.find((a) => a.slug === profile.accommodationSlug) ?? null;
+
+  const save = async (patch: Record<string, unknown>, key: string) => {
+    setSaving(key);
+    setMsg(null);
+    try {
+      await api("/api/profile", { method: "POST", body: JSON.stringify(patch) });
+      setMsg("Saved");
+      router.refresh();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Couldn't save");
+    } finally {
+      setSaving(null);
+      setTimeout(() => setMsg(null), 2000);
+    }
+  };
+
+  return (
+    <div className="px-4">
+      <SectionTitle>Budget</SectionTitle>
+      <div className="card space-y-3 p-4">
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div><p className="text-muted">Budget</p><p className="text-lg font-bold" data-testid="budget-amount">{budget.budget === null ? "Not set" : gbp(budget.budget)}</p></div>
+          <div><p className="text-muted">Spent</p><p className="text-lg font-bold" data-testid="budget-spent">{gbp(budget.spent)}</p></div>
+          <div><p className="text-muted">In basket</p><p className="text-lg font-bold">{gbp(budget.committed)}</p></div>
+          <div><p className="text-muted">Remaining</p><p className={`text-lg font-bold ${budget.remaining !== null && budget.remaining < 0 ? "text-red-600" : "text-success"}`} data-testid="budget-remaining">{budget.remaining === null ? "—" : gbp(budget.remaining)}</p></div>
+        </div>
+        <ChipRow>
+          {PRESETS.map((p) => (
+            <Chip key={p} active={Number(amount) === p} onClick={() => setAmount(String(p))}>£{p}</Chip>
+          ))}
+        </ChipRow>
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (amount !== "") void save({ budget: Number(amount) }, "budget"); }}>
+          <Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))} placeholder="Custom amount" aria-label="Budget amount" />
+          <Button type="submit" loading={saving === "budget"}>Set</Button>
+        </form>
+      </div>
+
+      <SectionTitle>Warwick accommodation</SectionTitle>
+      <div className="card space-y-3 p-4">
+        <select className="h-12 w-full rounded-2xl border border-border bg-card px-3 text-base" value={profile.accommodationSlug ?? ""} onChange={(e) => save({ accommodationSlug: e.target.value || null }, "acc")} aria-label="Accommodation">
+          <option value="">I don&apos;t know yet</option>
+          {accommodations.map((a) => (
+            <option key={a.slug} value={a.slug}>{a.name}</option>
+          ))}
+        </select>
+        {acc ? (
+          <div className="space-y-1 text-sm">
+            <p className="flex items-center gap-2">{acc.verifiedAt ? <Badge tone="success">Verified {new Date(acc.verifiedAt).toLocaleDateString("en-GB")}</Badge> : <Badge tone="warn">Not verified</Badge>} <a className="font-semibold text-accent-ink" href={acc.officialUrl} target="_blank" rel="noopener noreferrer">Official page</a></p>
+            <p>Bed size: <b>{acc.verifiedAt && acc.bedSize ? acc.bedSize.replace("_", " ") : "Not confirmed"}</b></p>
+            <p>Bathroom: <b>{acc.verifiedAt && acc.ensuite !== null ? (acc.ensuite ? "En-suite" : "Shared") : "Not confirmed"}</b></p>
+            <p>Hob: <b>{acc.verifiedAt && acc.hobType ? acc.hobType.replace("_", " ") : "Not confirmed"}</b></p>
+            <p>Supplied: <b>{acc.verifiedAt && acc.suppliedAppliances.length ? acc.suppliedAppliances.join(", ") : "Not confirmed"}</b></p>
+          </div>
+        ) : null}
+      </div>
+
+      <SectionTitle>Default postcode</SectionTitle>
+      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); void save({ defaultPostcode: String(f.get("pc") ?? "").toUpperCase() || null }, "pc"); }}>
+        <Input name="pc" defaultValue={profile.defaultPostcode ?? ""} placeholder="e.g. CV4 7AL" autoCapitalize="characters" aria-label="Default postcode" />
+        <Button type="submit" loading={saving === "pc"}>Save</Button>
+      </form>
+
+      <SectionTitle>Purchases</SectionTitle>
+      {purchases.length === 0 ? <p className="card p-4 text-sm text-muted">Nothing bought yet.</p> : (
+        <ul className="card divide-y divide-border p-0 text-sm">
+          {purchases.map((p) => (
+            <li key={p.id} className="flex justify-between px-4 py-3"><span>{p.productSnapshot?.title ?? p.retailer ?? "Purchase"}</span><span className="font-semibold">{gbp(p.paidPrice)}</span></li>
+          ))}
+        </ul>
+      )}
+
+      <SectionTitle>Account</SectionTitle>
+      <div className="card space-y-2 p-4 text-sm">
+        <p>{mode === "local" ? "Demo mode (local data on this server). No sign-in needed." : `Signed in as ${email ?? ""}`}</p>
+        <p className="text-xs text-muted">Providers: prices {String(providers.product)} · shops {String(providers.map)} · offers {String(providers.offer)} · agent {String(providers.ai)}</p>
+        {mode !== "local" ? <a href="/auth/signout" className="inline-block font-semibold text-accent-ink">Sign out</a> : null}
+        <button type="button" className="block text-xs text-muted underline" onClick={() => save({ onboardingComplete: false }, "onb").then(() => router.push("/onboarding"))}>Run setup again</button>
+      </div>
+      {msg ? <p className="pt-2 text-center text-sm text-muted">{msg}</p> : null}
+      <div className="h-6" />
+    </div>
+  );
+}

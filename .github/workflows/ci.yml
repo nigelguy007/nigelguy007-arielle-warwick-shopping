@@ -1,0 +1,31 @@
+name: CI
+on:
+  push:
+    paths: ["arielle-warwick-shopping/**"]
+  pull_request:
+    paths: ["arielle-warwick-shopping/**"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: arielle-warwick-shopping
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: arielle-warwick-shopping/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+        env:
+          DATA_MODE: local
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

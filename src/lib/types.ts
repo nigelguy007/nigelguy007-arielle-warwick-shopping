@@ -1,0 +1,257 @@
+// Shared domain types. Keep these framework-free so tests and scripts can import them.
+
+export const CHECKLIST_STATUSES = [
+  "need",
+  "have",
+  "buy",
+  "bought",
+  "packed",
+  "wait",
+  "do_not_buy",
+] as const;
+export type ChecklistStatus = (typeof CHECKLIST_STATUSES)[number];
+
+export const STATUS_LABELS: Record<ChecklistStatus, string> = {
+  need: "Need",
+  have: "Already have",
+  buy: "Buy",
+  bought: "Bought",
+  packed: "Packed",
+  wait: "Wait until arrival",
+  do_not_buy: "Do not buy",
+};
+
+export const PRIORITIES = ["essential", "recommended", "optional"] as const;
+export type Priority = (typeof PRIORITIES)[number];
+
+export const TIMINGS = [
+  "buy_before",
+  "take_from_home",
+  "wait_until_arrival",
+  "do_not_buy_yet",
+] as const;
+export type Timing = (typeof TIMINGS)[number];
+
+export const TIMING_LABELS: Record<Timing, string> = {
+  buy_before: "Buy before Warwick",
+  take_from_home: "Take from home",
+  wait_until_arrival: "Wait until arrival",
+  do_not_buy_yet: "Do not buy yet",
+};
+
+export interface ChecklistItem {
+  id: string;
+  sourceKey: string;
+  category: string;
+  item: string;
+  priority: Priority;
+  timing: Timing;
+  defaultQty: number;
+  budgetEstimate: number | null;
+  notes: string;
+}
+
+export interface UserChecklistEntry {
+  id: string;
+  userId: string;
+  checklistItemId: string;
+  status: ChecklistStatus;
+  qty: number;
+  customNotes: string;
+  updatedAt: string;
+}
+
+/** A checklist item joined with the user's own status. */
+export interface ChecklistView extends ChecklistItem {
+  status: ChecklistStatus;
+  qty: number;
+  customNotes: string;
+  updatedAt: string | null;
+}
+
+export type HobType = "induction" | "ceramic" | "gas" | "electric_coil" | "unknown";
+export type BedSize = "single" | "small_double" | "double" | "king" | "unknown";
+
+export interface AccommodationProfile {
+  id: string;
+  slug: string;
+  name: string;
+  officialUrl: string;
+  verifiedAt: string | null;
+  bedSize: BedSize | null;
+  mattressDimensions: string | null;
+  ensuite: boolean | null;
+  sharedBathroom: boolean | null;
+  kitchenType: string | null;
+  hobType: HobType | null;
+  suppliedAppliances: string[];
+  prohibitedItems: string[];
+  notes: Record<string, unknown>;
+}
+
+export interface Profile {
+  id: string;
+  firstName: string;
+  university: string;
+  accommodationSlug: string | null;
+  defaultPostcode: string | null;
+  onboardingComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Budget {
+  id: string;
+  userId: string;
+  name: string;
+  amount: number;
+  currency: string;
+  createdAt: string;
+}
+
+export interface Purchase {
+  id: string;
+  userId: string;
+  checklistItemId: string | null;
+  productSnapshot: ProductSearchResult | null;
+  retailer: string;
+  paidPrice: number;
+  voucherUsed: string | null;
+  purchasedAt: string;
+}
+
+export interface BasketItem {
+  id: string;
+  userId: string;
+  checklistItemId: string | null;
+  productSnapshot: ProductSearchResult;
+  quantity: number;
+  addedAt: string;
+}
+
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+export interface LocationContext {
+  label: string;
+  source: "device" | "postcode" | "campus";
+  coords: LatLng | null;
+  postcode: string | null;
+}
+
+export type SourceConfidence = "verified" | "unverified" | "mock";
+
+export interface ProductSearchInput {
+  query: string;
+  category?: string;
+  quantity?: number;
+  location?: LocationContext | null;
+  maxPrice?: number;
+  retailerPreference?: string[];
+  requiredAttributes?: string[];
+  excludedAttributes?: string[];
+  onlineOnly?: boolean;
+  localPreferred?: boolean;
+  limit?: number;
+}
+
+export interface ProductSearchResult {
+  id: string;
+  provider: string;
+  retailer: string;
+  title: string;
+  description: string;
+  currentPrice: number;
+  previousPrice?: number;
+  currency: string;
+  deliveryPrice?: number;
+  totalPrice: number;
+  rating?: number;
+  reviewCount?: number;
+  imageUrl: string | null;
+  productUrl: string;
+  merchantUrl: string | null;
+  availability: string;
+  /** Free-text attributes detected from the listing (e.g. "induction", "single"). */
+  attributes: string[];
+  locationContext: string;
+  checkedAt: string;
+  sourceConfidence: SourceConfidence;
+  deliveryDays?: number;
+  /** Set when the retailer has a physical store nearby (from the map provider), never inferred from stock. */
+  nearbyStoreId?: string;
+}
+
+export interface StoreResult {
+  id: string;
+  provider: string;
+  name: string;
+  address: string;
+  location: LatLng;
+  distanceMeters: number | null;
+  openNow: boolean | null;
+  openingHours: string[] | null;
+  rating: number | null;
+  reviewCount: number | null;
+  category: string;
+  retailerKey: string | null;
+  googleMapsUrl: string;
+  travelTimeMinutes: number | null;
+  checkedAt: string;
+  sourceConfidence: SourceConfidence;
+}
+
+export type OfferType = "voucher" | "promotion" | "student";
+
+export interface OfferSearchInput {
+  retailer?: string;
+  query?: string;
+  region?: string;
+  limit?: number;
+}
+
+export interface OfferResult {
+  id: string;
+  provider: string;
+  retailer: string;
+  title: string;
+  description: string;
+  code: string | null;
+  type: OfferType;
+  percentage: number | null;
+  amount: number | null;
+  minSpend: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  terms: string;
+  source: string;
+  sourceUrl: string;
+  checkedAt: string;
+  studentVerificationRequired: boolean;
+  verified: boolean;
+}
+
+export const RETAILERS = [
+  "Argos",
+  "Dunelm",
+  "IKEA",
+  "Tesco",
+  "Sainsbury's",
+  "Boots",
+  "Superdrug",
+  "B&M",
+  "Home Bargains",
+  "Primark",
+  "John Lewis",
+  "Amazon UK",
+  "Currys",
+] as const;
+
+export const WARWICK_CAMPUS: LocationContext = {
+  label: "University of Warwick, Coventry CV4 7AL",
+  source: "campus",
+  coords: { lat: 52.3793, lng: -1.5615 },
+  postcode: "CV4 7AL",
+};
