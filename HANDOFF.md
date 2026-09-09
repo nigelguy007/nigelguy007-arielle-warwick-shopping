@@ -45,7 +45,7 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 
 ## Known limitations
 
-- Local mode is single-instance and file-backed: fine for development and a demo, not for Vercel (read-only filesystem) or multiple users.
+- Local mode has two storages: a JSON file (development) and, on Vercel, a compressed per-visitor cookie (`LOCAL_STORE=cookie`, automatic when `VERCEL` is set) because serverless functions share no disk. Cookie state is capped at roughly 20 KB, lives in that browser only, and is not a substitute for Supabase mode.
 - Provider caches are per server instance (in memory). The `product_search_cache` / `offers_cache` tables exist for a shared cache but are not yet used.
 - The in-app Google map uses classic `google.maps.Marker`; switch to Advanced Markers with a Map ID if Google deprecates it in your project.
 - Basket optimisation re-runs a compare per basket line, so with SerpApi it costs one shopping search per line (cached 30 min).

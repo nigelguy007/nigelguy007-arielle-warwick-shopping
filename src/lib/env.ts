@@ -27,6 +27,11 @@ export const env = {
     if (explicit === "supabase" && !process.env.NEXT_PUBLIC_SUPABASE_URL) return "local";
     return explicit;
   },
+  /** file = ./.data JSON (dev). cookie = per-visitor cookie delta (serverless demo, no shared disk). */
+  get localStoreKind(): "file" | "cookie" {
+    const explicit = pick(process.env.LOCAL_STORE, ["file", "cookie"] as const, process.env.VERCEL ? "cookie" : "file");
+    return explicit;
+  },
   get localDataDir() {
     // Serverless filesystems are read-only except /tmp; demo data there is ephemeral by design.
     return process.env.LOCAL_DATA_DIR || (process.env.VERCEL ? "/tmp/arielle-warwick-data" : ".data");

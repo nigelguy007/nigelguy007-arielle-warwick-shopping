@@ -56,8 +56,12 @@ test("6-7: location via campus, nearby stores never claim stock", async ({ page 
 });
 
 test("8-10: mark bought from basket, mark packed, budget updates", async ({ page }) => {
-  await signInAndOnboard(page);
-  await page.goto("/shop");
+  await signInAndOnboard(page, { budget: 200 });
+  // Self-contained: put a duvet in the basket first (each test has its own browser context).
+  await page.goto("/shop?q=duvet");
+  await page.getByRole("button", { name: "Add to basket" }).first().click();
+  await expect(page.getByText(/1 shop · 1 item/)).toBeVisible();
+  await page.goto("/shop"); // basket only, no search results
   const before = await page.request.get("/api/budget").then((r) => r.json());
   await page.getByRole("button", { name: "Mark bought" }).first().click();
   await expect(page.getByText("Your basket is empty")).toBeVisible();
