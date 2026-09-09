@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["127.0.0.1", "localhost"],
+  // Local/demo mode seeds from these files at runtime; make sure serverless bundles carry them.
+  outputFileTracingIncludes: { "/**/*": ["./data/**"] },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },

@@ -33,7 +33,7 @@ Mock results are badged "Mock data · not live" and are refused in production un
 1. **Warwick accommodation facts.** All 13 residences are seeded with their official URL and `verified_at: null`. No bed size, hob type or supplied appliances are populated, so bedding shows "Bed size not confirmed", cookware warns about hob type, and no appliance is suppressed until someone verifies each hall against the official page and updates `data/accommodations.json` (then re-imports). This is deliberate: the spec says never guess.
 2. **The source checklist.** The CSV shipped here is authored, not Arielle's. Replace `data/warwick_move_in_checklist.csv` with the real export (same columns) and run `pnpm import:checklist`.
 3. **Live adapters were tested only with mocked HTTP** (request shape, headers, field masks, mapping) plus optional live tests that run when keys are present. SerpApi field names, the Awin promotions request body, and Student Beans / UNiDAYS search URL formats should be checked against current docs on first live use.
-4. **Vercel deployment** has not been executed from this environment (no Vercel credentials). The build passes locally with `next build`.
+4. **Vercel**: a Vercel project (`arielle-warwick-shopping`, root directory `arielle-warwick-shopping`) is linked to this repo. Pushes build previews in local demo mode (mock data, `/tmp` storage that resets on cold start). Real production needs `DATA_MODE=supabase` and the Supabase vars set in the Vercel dashboard.
 
 ## Deploying
 

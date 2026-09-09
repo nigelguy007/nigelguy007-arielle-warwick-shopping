@@ -10,7 +10,7 @@ import type { DataStore } from "./types";
 const g = globalThis as unknown as { __awLocalStore?: LocalStore; __awLocalSeeded?: Promise<void> };
 
 export function getLocalStore(): LocalStore {
-  if (!g.__awLocalStore) g.__awLocalStore = new LocalStore(path.resolve(process.cwd(), env.localDataDir));
+  if (!g.__awLocalStore) g.__awLocalStore = new LocalStore(path.isAbsolute(env.localDataDir) ? env.localDataDir : path.resolve(process.cwd(), env.localDataDir));
   return g.__awLocalStore;
 }
 

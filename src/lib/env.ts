@@ -12,8 +12,12 @@ function pick<T extends string>(value: string | undefined, allowed: readonly T[]
 }
 
 export const env = {
+  /**
+   * "Production" for the mock-refusal rule means a real deployment with real user data
+   * (Supabase mode). Local demo mode always labels mock data and is never Arielle's live app.
+   */
   get isProduction() {
-    return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview" && process.env.ALLOW_MOCK_IN_PRODUCTION !== "true";
+    return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview" && process.env.ALLOW_MOCK_IN_PRODUCTION !== "true" && this.dataMode === "supabase";
   },
   get appUrl() {
     return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -24,7 +28,8 @@ export const env = {
     return explicit;
   },
   get localDataDir() {
-    return process.env.LOCAL_DATA_DIR || ".data";
+    // Serverless filesystems are read-only except /tmp; demo data there is ephemeral by design.
+    return process.env.LOCAL_DATA_DIR || (process.env.VERCEL ? "/tmp/arielle-warwick-data" : ".data");
   },
   get productProvider(): ProductProvider {
     const p = pick(process.env.PRODUCT_PROVIDER, ["mock", "serpapi"] as const, "mock");
