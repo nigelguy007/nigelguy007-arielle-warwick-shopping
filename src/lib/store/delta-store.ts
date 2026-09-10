@@ -63,7 +63,7 @@ export class DeltaStore implements DataStore {
 
   async getProfile(userId: string): Promise<Profile | null> {
     const now = new Date().toISOString();
-    return this.delta.profile ?? { id: userId, firstName: this.defaults.firstName, university: "University of Warwick", accommodationSlug: null, defaultPostcode: null, onboardingComplete: false, createdAt: now, updatedAt: now };
+    return this.delta.profile ?? { id: userId, firstName: this.defaults.firstName, university: "University of Warwick", accommodationSlug: null, defaultPostcode: null, moveInDate: null, notifyPriceAlerts: true, notifyVoucherExpiry: true, notifyWeeklyDigest: false, onboardingComplete: false, createdAt: now, updatedAt: now };
   }
   async upsertProfile(userId: string, patch: Partial<Omit<Profile, "id" | "createdAt" | "updatedAt">>) {
     const existing = (await this.getProfile(userId)) as Profile;
@@ -73,6 +73,10 @@ export class DeltaStore implements DataStore {
       university: patch.university ?? existing.university,
       accommodationSlug: patch.accommodationSlug !== undefined ? patch.accommodationSlug : existing.accommodationSlug,
       defaultPostcode: patch.defaultPostcode !== undefined ? patch.defaultPostcode : existing.defaultPostcode,
+      moveInDate: patch.moveInDate !== undefined ? patch.moveInDate : existing.moveInDate,
+      notifyPriceAlerts: patch.notifyPriceAlerts ?? existing.notifyPriceAlerts,
+      notifyVoucherExpiry: patch.notifyVoucherExpiry ?? existing.notifyVoucherExpiry,
+      notifyWeeklyDigest: patch.notifyWeeklyDigest ?? existing.notifyWeeklyDigest,
       onboardingComplete: patch.onboardingComplete ?? existing.onboardingComplete,
       updatedAt: new Date().toISOString(),
     };

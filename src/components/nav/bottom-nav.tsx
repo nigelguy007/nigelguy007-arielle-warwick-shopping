@@ -1,46 +1,71 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, ListChecks, ShoppingBag, Map, UserRound, Sparkles } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Icon, SparkleIcon, TAB_ICON_PATH } from "@/components/ui/icons";
+import { useDock } from "@/lib/client/dock-context";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/checklist", label: "Checklist", icon: ListChecks },
-  { href: "/shop", label: "Shop", icon: ShoppingBag },
-  { href: "/map", label: "Map", icon: Map },
-  { href: "/agent", label: "Agent", icon: Sparkles },
-  { href: "/me", label: "Me", icon: UserRound },
+  { href: "/", label: "Home", path: TAB_ICON_PATH.home },
+  { href: "/checklist", label: "List", path: TAB_ICON_PATH.checklist },
+  { href: "/shop", label: "Shop", path: TAB_ICON_PATH.shop },
+  { href: "/map", label: "Map", path: TAB_ICON_PATH.map },
+  { href: "/me", label: "Me", path: TAB_ICON_PATH.me },
 ] as const;
 
 /**
- * The one docked bar: nav + agent entry point live together so there is
- * exactly one reserved height (--dock-h, set below) for every screen to pad
- * against - see .impeccable.md principle 4. A previous pass had the agent
- * button floating independently above this bar with a hand-tuned offset,
- * which drifted out of sync with the padding and clipped real content.
+ * The docked bottom bar: a glass tab-bar pill + a diamond FAB, matching the
+ * design handoff exactly. The handoff's FAB is a no-op placeholder ("intended
+ * for quick add item or similar") - this app already has a real AI agent
+ * (14 tools, streaming chat), so the FAB opens that instead of staying inert.
+ * Checklist's multi-select mode swaps this whole bar for a bulk-action bar
+ * via useDock() - see dock-context.tsx.
  */
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { override } = useDock();
+
+  if (override) {
+    return (
+      <div className="fixed right-3.5 bottom-6 left-3.5 z-30" style={{ paddingBottom: "var(--sab)" }}>
+        {override}
+      </div>
+    );
+  }
+
+  const active = pathname.startsWith("/checklist") ? "/checklist" : pathname;
+
   return (
-    <nav
-      aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur"
-      style={{ height: "var(--dock-h)", paddingBottom: "var(--sab)" }}
-    >
-      <ul className="mx-auto flex h-full max-w-lg justify-around">
-        {TABS.map(({ href, label, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-          return (
-            <li key={href} className="flex-1">
-              <Link href={href} aria-current={active ? "page" : undefined} className={cn("tap flex h-full flex-col items-center justify-center gap-0.5 text-[10px] font-semibold", active ? "text-accent-ink" : "text-muted")}>
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} aria-hidden="true" />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <div className="fixed right-3.5 bottom-6 left-3.5 z-30 mx-auto flex max-w-lg items-center gap-2.5" style={{ paddingBottom: "var(--sab)" }}>
+      <nav aria-label="Main" className="glass h-15 flex-1 overflow-hidden rounded-full" style={{ boxShadow: "var(--bar-shadow)" }}>
+        <ul className="flex h-full">
+          {TABS.map((t) => {
+            const isActive = t.href === "/" ? active === "/" : active.startsWith(t.href);
+            return (
+              <li key={t.href} className="flex-1">
+                <Link
+                  href={t.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn("tap flex h-full flex-col items-center justify-center gap-0.5 text-[10px]", isActive ? "font-bold text-accent-ink" : "font-semibold text-foreground-secondary")}
+                >
+                  <Icon path={t.path} size={20} sw={isActive ? 2.2 : 1.8} />
+                  {t.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      <button
+        type="button"
+        onClick={() => router.push("/agent")}
+        aria-label="Ask Arielle's Agent"
+        className="flex h-15 w-15 shrink-0 items-center justify-center rounded-[30px] border-[0.5px] border-white/35 text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-deep))", boxShadow: "var(--fab-shadow)" }}
+      >
+        <SparkleIcon size={22} />
+      </button>
+    </div>
   );
 }

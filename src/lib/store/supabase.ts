@@ -59,7 +59,16 @@ function toAccommodation(r: Row): AccommodationProfile {
   };
 }
 function toProfile(r: Row): Profile {
-  return { id: s(r.id), firstName: s(r.first_name), university: s(r.university), accommodationSlug: r.accommodation_slug == null ? null : s(r.accommodation_slug), defaultPostcode: r.default_postcode == null ? null : s(r.default_postcode), onboardingComplete: Boolean(r.onboarding_complete), createdAt: s(r.created_at), updatedAt: s(r.updated_at) };
+  return {
+    id: s(r.id), firstName: s(r.first_name), university: s(r.university),
+    accommodationSlug: r.accommodation_slug == null ? null : s(r.accommodation_slug),
+    defaultPostcode: r.default_postcode == null ? null : s(r.default_postcode),
+    moveInDate: r.move_in_date == null ? null : s(r.move_in_date),
+    notifyPriceAlerts: r.notify_price_alerts == null ? true : Boolean(r.notify_price_alerts),
+    notifyVoucherExpiry: r.notify_voucher_expiry == null ? true : Boolean(r.notify_voucher_expiry),
+    notifyWeeklyDigest: Boolean(r.notify_weekly_digest),
+    onboardingComplete: Boolean(r.onboarding_complete), createdAt: s(r.created_at), updatedAt: s(r.updated_at),
+  };
 }
 function toBudget(r: Row): Budget {
   return { id: s(r.id), userId: s(r.user_id), name: s(r.name), amount: Number(r.amount), currency: s(r.currency) || "GBP", createdAt: s(r.created_at) };
@@ -108,6 +117,10 @@ export class SupabaseStore implements DataStore, AdminStore {
     if (patch.university !== undefined) row.university = patch.university;
     if (patch.accommodationSlug !== undefined) row.accommodation_slug = patch.accommodationSlug;
     if (patch.defaultPostcode !== undefined) row.default_postcode = patch.defaultPostcode;
+    if (patch.moveInDate !== undefined) row.move_in_date = patch.moveInDate;
+    if (patch.notifyPriceAlerts !== undefined) row.notify_price_alerts = patch.notifyPriceAlerts;
+    if (patch.notifyVoucherExpiry !== undefined) row.notify_voucher_expiry = patch.notifyVoucherExpiry;
+    if (patch.notifyWeeklyDigest !== undefined) row.notify_weekly_digest = patch.notifyWeeklyDigest;
     if (patch.onboardingComplete !== undefined) row.onboarding_complete = patch.onboardingComplete;
     const res = await this.db.from("profiles").upsert(row, { onConflict: "id" }).select("*").single();
     return toProfile(must(res, "profiles upsert") as Row);

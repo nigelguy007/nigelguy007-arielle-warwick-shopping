@@ -19,7 +19,20 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await requireUserOr401();
   if (user instanceof Response) return user;
-  const body = await parseJson(req, z.object({ firstName: z.string().max(40).optional(), accommodationSlug: z.string().max(60).nullable().optional(), defaultPostcode: z.string().max(10).nullable().optional(), onboardingComplete: z.boolean().optional(), budget: z.number().min(0).max(100000).nullable().optional() }));
+  const body = await parseJson(
+    req,
+    z.object({
+      firstName: z.string().max(40).optional(),
+      accommodationSlug: z.string().max(60).nullable().optional(),
+      defaultPostcode: z.string().max(10).nullable().optional(),
+      moveInDate: z.string().max(10).nullable().optional(),
+      notifyPriceAlerts: z.boolean().optional(),
+      notifyVoucherExpiry: z.boolean().optional(),
+      notifyWeeklyDigest: z.boolean().optional(),
+      onboardingComplete: z.boolean().optional(),
+      budget: z.number().min(0).max(100000).nullable().optional(),
+    }),
+  );
   if (body instanceof Response) return body;
   try {
     const store = await getStore();

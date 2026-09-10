@@ -1,99 +1,135 @@
 @import "tailwindcss";
 
 /*
- * Design language: a shipping manifest / luggage tag, not a SaaS dashboard.
- * Light and dark are each constructed independently in OKLCH (not one
- * palette inverted) - see .impeccable.md for the full brief. Ink-blue
- * carries primary action; marigold is reserved for "hopeful" moments
- * (completion, a good find). Token NAMES below are kept stable across the
- * redesign (only values changed) since every component's Tailwind classes
- * (bg-card, text-muted, bg-accent-soft, ...) are generated from them.
+ * Design system from the "Apple design shopping app" handoff
+ * (design_handoff_warwick_moveIn/README.md + prototype) - an iOS-editorial
+ * glass aesthetic. Values below are copied exactly from the handoff's F
+ * (light) / dark token objects. Dark mode has its own three-state toggle
+ * (system preference by default, explicit override via the Home/Me toggle
+ * wins in either direction) - see theme-script below and ThemeToggle.
  */
 :root {
-  --background: oklch(0.94 0.016 75);
-  --foreground: oklch(0.24 0.025 65);
-  --card: oklch(0.975 0.01 75);
-  --muted: oklch(0.48 0.03 65);
-  --border: oklch(0.85 0.022 70);
+  --background: oklch(96.5% 0.01 85);
+  --foreground: oklch(24% 0.02 60);
+  --foreground-secondary: oklch(46% 0.025 60);
+  --muted: oklch(60% 0.02 60);
 
-  --accent: oklch(0.42 0.135 255);
-  --accent-ink: oklch(0.32 0.12 255);
-  --accent-soft: oklch(0.93 0.032 255);
+  --accent: oklch(52% 0.16 262);
+  --accent-deep: oklch(42% 0.16 262);
+  --accent-ink: oklch(42% 0.16 262);
+  --accent-soft: oklch(93% 0.03 262);
+  --on-accent: #fff;
 
-  --marigold: oklch(0.78 0.15 75);
-  --marigold-ink: oklch(0.4 0.13 60);
-  --marigold-soft: oklch(0.93 0.05 75);
+  --card: oklch(99% 0.005 85 / 0.5);
+  --card-border-color: rgba(255, 255, 255, 0.85);
+  --card-shadow: 0 4px 16px oklch(24% 0.02 60 / 0.1);
+  --ring-track: oklch(93% 0.03 262);
+  --photo-a: oklch(92% 0.012 85);
+  --photo-b: oklch(95.5% 0.008 85);
 
-  --success: oklch(0.5 0.11 145);
-  --success-soft: oklch(0.93 0.04 145);
-  --warn: oklch(0.55 0.13 70);
-  --warn-soft: oklch(0.92 0.05 80);
-  --danger: oklch(0.5 0.16 25);
-  --danger-soft: oklch(0.92 0.05 25);
-  --mock: oklch(0.45 0.06 280);
-  --mock-soft: oklch(0.92 0.02 280);
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --bar-shadow: 0 12px 32px rgba(16, 20, 29, 0.16);
+  --fab-shadow: 0 12px 28px oklch(52% 0.16 262 / 0.4);
+  --row-border: rgba(60, 60, 67, 0.1);
+
+  --toast-bg: rgba(16, 20, 29, 0.82);
+  --toast-fg: #fff;
+
+  /* Constant across both themes, per the handoff. */
+  --success: oklch(48% 0.12 152);
+  --danger: oklch(55% 0.16 25);
+  --danger-badge: oklch(58% 0.19 25);
+  --essential-bg: oklch(83% 0.1 85 / 0.35);
+  --essential-fg: oklch(45% 0.1 65);
 
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
-  /* Reserved height for the single docked bottom nav bar (which now also
-     carries the agent entry point as a tab, not a separately-floating
-     button - see bottom-nav.tsx). Every scroll container pads by this
-     exact value so it can never be covered - a real bug in the previous
-     pass, now a hard rule. */
-  --dock-h: 4.25rem;
+  /* Reserved height for the docked tab bar + FAB row so scroll content is
+     never covered underneath it. */
+  --dock-h: 5.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.19 0.015 260);
-    --foreground: oklch(0.93 0.012 80);
-    --card: oklch(0.245 0.017 260);
-    --muted: oklch(0.68 0.02 80);
-    --border: oklch(0.34 0.02 260);
+  :root:not([data-theme="light"]) {
+    --background: oklch(16% 0.015 250);
+    --foreground: oklch(95% 0.008 250);
+    --foreground-secondary: oklch(74% 0.015 250);
+    --muted: oklch(55% 0.015 250);
 
-    --accent: oklch(0.74 0.12 255);
-    --accent-ink: oklch(0.86 0.08 255);
-    --accent-soft: oklch(0.28 0.05 255);
+    --accent: oklch(80% 0.13 175);
+    --accent-deep: oklch(66% 0.13 175);
+    --accent-ink: oklch(85% 0.1 175);
+    --accent-soft: oklch(30% 0.05 178);
+    --on-accent: oklch(18% 0.02 250);
 
-    --marigold: oklch(0.78 0.14 75);
-    --marigold-ink: oklch(0.88 0.1 80);
-    --marigold-soft: oklch(0.3 0.06 75);
+    --card: rgba(60, 66, 82, 0.32);
+    --card-border-color: rgba(255, 255, 255, 0.14);
+    --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --ring-track: oklch(32% 0.03 200);
+    --photo-a: oklch(28% 0.02 250);
+    --photo-b: oklch(32% 0.02 250);
 
-    --success: oklch(0.72 0.12 145);
-    --success-soft: oklch(0.28 0.05 145);
-    --warn: oklch(0.76 0.13 75);
-    --warn-soft: oklch(0.3 0.05 75);
-    --danger: oklch(0.7 0.15 25);
-    --danger-soft: oklch(0.3 0.06 25);
-    --mock: oklch(0.68 0.05 280);
-    --mock-soft: oklch(0.28 0.03 280);
+    --glass: rgba(120, 125, 140, 0.24);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --fab-shadow: 0 12px 28px oklch(80% 0.13 175 / 0.3);
+    --row-border: rgba(255, 255, 255, 0.08);
+
+    --toast-bg: rgba(235, 238, 245, 0.9);
+    --toast-fg: #10141d;
   }
+}
+:root[data-theme="dark"] {
+  --background: oklch(16% 0.015 250);
+  --foreground: oklch(95% 0.008 250);
+  --foreground-secondary: oklch(74% 0.015 250);
+  --muted: oklch(55% 0.015 250);
+
+  --accent: oklch(80% 0.13 175);
+  --accent-deep: oklch(66% 0.13 175);
+  --accent-ink: oklch(85% 0.1 175);
+  --accent-soft: oklch(30% 0.05 178);
+  --on-accent: oklch(18% 0.02 250);
+
+  --card: rgba(60, 66, 82, 0.32);
+  --card-border-color: rgba(255, 255, 255, 0.14);
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --ring-track: oklch(32% 0.03 200);
+  --photo-a: oklch(28% 0.02 250);
+  --photo-b: oklch(32% 0.02 250);
+
+  --glass: rgba(120, 125, 140, 0.24);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --fab-shadow: 0 12px 28px oklch(80% 0.13 175 / 0.3);
+  --row-border: rgba(255, 255, 255, 0.08);
+
+  --toast-bg: rgba(235, 238, 245, 0.9);
+  --toast-fg: #10141d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
+  --color-foreground-secondary: var(--foreground-secondary);
   --color-muted: var(--muted);
-  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-border: var(--row-border);
   --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
+  --color-accent-deep: var(--accent-deep);
   --color-accent-ink: var(--accent-ink);
-  --color-marigold: var(--marigold);
-  --color-marigold-ink: var(--marigold-ink);
-  --color-marigold-soft: var(--marigold-soft);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-glass: var(--glass);
   --color-success: var(--success);
-  --color-success-soft: var(--success-soft);
-  --color-warn: var(--warn);
-  --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --color-mock: var(--mock);
-  --color-mock-soft: var(--mock-soft);
-  --font-sans: var(--font-body-raw), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-essential-bg: var(--essential-bg);
+  --color-essential-fg: var(--essential-fg);
+  --font-sans: -apple-system, "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-display-raw), var(--font-sans);
-  --radius-card: 0.625rem;
-  --radius-chip: 0.5rem;
+  --radius-card: 1.125rem;
+  --radius-pill: 999px;
 }
 
 html {
@@ -107,40 +143,62 @@ body {
   font-family: var(--font-sans);
   min-height: 100dvh;
   overscroll-behavior-y: none;
+  transition: background 0.2s, color 0.2s;
 }
 
 button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
 
-.card { @apply rounded-[var(--radius-card)] bg-card border border-border shadow-[0_1px_2px_rgba(0,0,0,0.06)]; }
 .tap { @apply min-h-11 min-w-11; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .tabular { font-variant-numeric: tabular-nums; }
 
-/* Pads the bottom of a scroll container so the docked nav/agent chip never
+/* Pads the bottom of a scroll container so the docked tab bar/FAB never
    covers content underneath it. */
 .dock-pad { padding-bottom: calc(var(--dock-h) + var(--sab) + 1rem); }
 
-/*
- * Manifest tear: the one signature structural device (used once per screen
- * at most), replacing the previous pass's ticket-stub - a perforated rule,
- * like the strip above the itemised rows on a shipping manifest.
- */
-.manifest-tear {
-  border: none;
-  height: 2px;
-  background-image: repeating-linear-gradient(to right, var(--border) 0 6px, transparent 6px 12px);
+/* Frosted glass chrome: header icon buttons, search bars, the tab bar. */
+.glass {
+  position: relative;
+  border: 0.5px solid var(--glass-border);
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  background: var(--glass);
+  border-radius: inherit;
+}
+.glass > * { position: relative; }
+
+/* Frosted card: product cards, list sections, sheets. */
+.glass-card {
+  position: relative;
+  background: var(--card);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid var(--card-border-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
 }
 
-/* Corner-notched stamp: a solid (not dashed) rotated tag for "essential" -
-   reads as a packing sticker, not a customs-stamp cliche. */
-.tag-stamp {
-  @apply relative inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
-  background: var(--marigold-soft);
-  color: var(--marigold-ink);
-  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+/* Diagonal-stripe placeholder for product/store photography pending a live
+   retailer image feed - an intentional design element, not a TODO. */
+.photo-placeholder {
+  background-image: repeating-linear-gradient(45deg, var(--photo-a) 0 8px, var(--photo-b) 8px 16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-placeholder span {
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--muted);
 }

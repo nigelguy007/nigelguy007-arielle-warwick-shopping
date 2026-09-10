@@ -98,6 +98,11 @@ export interface Profile {
   university: string;
   accommodationSlug: string | null;
   defaultPostcode: string | null;
+  /** ISO date (YYYY-MM-DD) the student moves into halls. Drives the Home countdown. */
+  moveInDate: string | null;
+  notifyPriceAlerts: boolean;
+  notifyVoucherExpiry: boolean;
+  notifyWeeklyDigest: boolean;
   onboardingComplete: boolean;
   createdAt: string;
   updatedAt: string;

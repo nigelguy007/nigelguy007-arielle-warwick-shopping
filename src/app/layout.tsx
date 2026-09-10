@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders, Hanken_Grotesk } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
+import { THEME_INIT_SCRIPT } from "@/lib/client/theme";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 
-// Big Shoulders: designed around Chicago fire-escape stencils and industrial
-// signage - a genuine "shipping manifest / crate stencil" face, not a reflex
-// display pick. Hanken Grotesk: warm, humanist body face with good mobile
-// legibility, distinct from the previous pass's Karla.
-const display = Big_Shoulders({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display-raw", display: "swap" });
-const body = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-body-raw", display: "swap" });
+// Display/headers only, per the design handoff - body/UI text uses the
+// system font stack (set in globals.css), not a second webfont.
+const display = Manrope({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-display-raw", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Warwick Move-In", template: "%s · Warwick Move-In" },
@@ -23,8 +21,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f2eae0" },
-    { media: "(prefers-color-scheme: dark)", color: "#10141b" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f3ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#080e14" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -33,7 +31,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className={`h-full antialiased ${display.variable} ${body.variable}`}>
+    <html lang="en-GB" className={`h-full antialiased ${display.variable}`}>
+      <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full">
         <OfflineBanner />
         {children}
