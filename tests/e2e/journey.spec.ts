@@ -26,7 +26,7 @@ test("4-5: search a duvet, compare options, add to basket, find nearby", async (
   await page.getByLabel("Search products").fill("duvet");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText(/Results for “duvet”/)).toBeVisible();
-  await expect(page.getByText("Cheapest").first()).toBeVisible();
+  await expect(page.getByText("BEST").first()).toBeVisible();
   await expect(page.getByText("Best value").first()).toBeVisible();
   await expect(page.getByText(/Source:/).first()).toBeVisible();
   await expect(page.getByText(/Checked (just now|\d+ minutes? ago)/).first()).toBeVisible();
@@ -41,7 +41,7 @@ test("4-5: search a duvet, compare options, add to basket, find nearby", async (
   await expect(page.getByText(/Added .* to your basket/)).toBeVisible();
   await expect(page.getByText(/1 shop · 1 item/)).toBeVisible();
 
-  await page.getByRole("button", { name: "Find nearby" }).first().click();
+  await page.getByRole("button", { name: "Nearby" }).first().click();
   await expect(page).toHaveURL(/\/map\?retailer=/);
   await expect(page.getByRole("heading", { name: "Map" })).toBeVisible();
 });

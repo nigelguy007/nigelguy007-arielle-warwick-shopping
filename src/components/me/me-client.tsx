@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Camera } from "lucide-react";
 import { api } from "@/lib/client/api";
 import { fileToDataUrl } from "@/lib/client/image";
@@ -9,12 +10,45 @@ import { Input } from "@/components/ui/input";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { SectionTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Icon, MISC_ICON_PATH } from "@/components/ui/icons";
+import { ToggleSwitch } from "@/components/me/toggle-switch";
 import { gbp } from "@/lib/utils";
+import { useTheme } from "@/lib/client/theme";
+import { countdownLabel } from "@/lib/checklist/countdown";
 import { MeSharing } from "@/components/share/me-sharing";
-import type { AccommodationProfile, Profile, Purchase, SharedAccess, SharedAccessView, ShareInvite } from "@/lib/types";
+import type { AccommodationProfile, Profile, Purchase, SharedAccess, SharedAccessView, ShareInvite, StoreConnection } from "@/lib/types";
 import type { BudgetSummary } from "@/lib/budget/math";
 
 const PRESETS = [100, 200, 300, 500];
+// Matches the default retailer set on Shop (store-connections-panel.tsx) -
+// the "of M" denominator for the summary row here.
+const KNOWN_RETAILER_COUNT = 5;
+
+type NotifyKey = "notifyPriceAlerts" | "notifyVoucherExpiry" | "notifyWeeklyDigest";
+const NOTIFY_ROWS: Array<{ key: NotifyKey; label: string; description: string }> = [
+  { key: "notifyPriceAlerts", label: "Price drop alerts", description: "Get notified when a tracked item drops in price" },
+  { key: "notifyVoucherExpiry", label: "Voucher expiry", description: "Reminders before a saved voucher code expires" },
+  { key: "notifyWeeklyDigest", label: "Weekly digest", description: "A weekly summary of your budget and checklist progress" },
+];
+
+/** Uppercase 12px/700 muted label above a glass-card settings section -
+ * the handoff's exact treatment for this screen (matches the existing
+ * pattern used for packing-mode's box headings). */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="px-1 pt-6 pb-2 text-xs font-bold uppercase tracking-[0.12em] text-muted">{children}</p>;
+}
+
+function NotifyRow({ label, description, checked, onToggle }: { label: string; description: string; checked: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} onClick={onToggle} className="flex w-full items-center gap-3 px-4 py-3 text-left">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">{label}</p>
+        <p className="text-[11.5px] text-muted">{description}</p>
+      </div>
+      <ToggleSwitch checked={checked} />
+    </button>
+  );
+}
 
 export function MeClient({
   profile,
@@ -42,11 +76,20 @@ export function MeClient({
   appUrl: string;
 }) {
   const router = useRouter();
+  const { dark, toggleDark } = useTheme();
   const [amount, setAmount] = useState(budget.budget?.toString() ?? "");
   const [saving, setSaving] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [receiptSaving, setReceiptSaving] = useState<string | null>(null);
+  const [notifyOverrides, setNotifyOverrides] = useState<Partial<Record<NotifyKey, boolean>>>({});
+  const [connectedCount, setConnectedCount] = useState<number | null>(null);
   const acc = accommodations.find((a) => a.slug === profile.accommodationSlug) ?? null;
+
+  useEffect(() => {
+    api<{ connections: StoreConnection[] }>("/api/stores")
+      .then(({ connections }) => setConnectedCount(connections.length))
+      .catch(() => setConnectedCount(null));
+  }, []);
 
   const attachReceipt = async (purchaseId: string, file: File) => {
     setReceiptSaving(purchaseId);
@@ -77,8 +120,77 @@ export function MeClient({
     }
   };
 
+  const notifyValue = (key: NotifyKey) => notifyOverrides[key] ?? profile[key];
+
+  const toggleNotify = async (key: NotifyKey) => {
+    const next = !notifyValue(key);
+    setNotifyOverrides((o) => ({ ...o, [key]: next }));
+    try {
+      await api("/api/profile", { method: "POST", body: JSON.stringify({ [key]: next }) });
+      router.refresh();
+    } catch (e) {
+      setNotifyOverrides((o) => ({ ...o, [key]: !next }));
+      setMsg(e instanceof Error ? e.message : "Couldn't save");
+      setTimeout(() => setMsg(null), 2000);
+    }
+  };
+
+  const initial = (profile.firstName.trim().charAt(0) || "?").toUpperCase();
+  const subtitle = [acc?.name, countdownLabel(profile.moveInDate)].filter(Boolean).join(" · ") || "Warwick move-in";
+
   return (
     <div className="px-4">
+      <div className="flex flex-col items-center gap-2 pt-2 pb-1 text-center">
+        <div
+          className="flex h-[72px] w-[72px] items-center justify-center rounded-full font-display text-[26px] font-extrabold text-on-accent"
+          style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-deep))" }}
+        >
+          {initial}
+        </div>
+        <p className="font-display text-xl font-extrabold">{profile.firstName || "You"}</p>
+        <p className="text-sm text-foreground-secondary">{subtitle}</p>
+      </div>
+
+      <SectionLabel>Move-in details</SectionLabel>
+      <div className="glass-card divide-y divide-border p-0">
+        <div className="flex items-center justify-between px-4 py-3 text-sm">
+          <span className="font-semibold">Hall</span>
+          <span className="text-muted">{acc?.name ?? "Not set"}</span>
+        </div>
+        <div className="flex items-center justify-between px-4 py-3 text-sm">
+          <span className="font-semibold">Move-in date</span>
+          <input
+            type="date"
+            value={profile.moveInDate ?? ""}
+            onChange={(e) => save({ moveInDate: e.target.value || null }, "moveInDate")}
+            aria-label="Move-in date"
+            style={{ colorScheme: "light dark" }}
+            className="border-none bg-transparent px-0 text-right text-sm font-semibold text-accent-ink focus-visible:outline-none"
+          />
+        </div>
+      </div>
+
+      <SectionLabel>Notifications</SectionLabel>
+      <div className="glass-card divide-y divide-border p-0">
+        {NOTIFY_ROWS.map((row) => (
+          <NotifyRow key={row.key} label={row.label} description={row.description} checked={notifyValue(row.key)} onToggle={() => toggleNotify(row.key)} />
+        ))}
+      </div>
+
+      <SectionLabel>Store connections</SectionLabel>
+      <Link href="/shop" className="glass-card flex items-center justify-between px-4 py-3.5 text-sm">
+        <span className="font-semibold">Connected retailers · {connectedCount ?? "…"} of {KNOWN_RETAILER_COUNT}</span>
+        <span className="flex items-center gap-0.5 text-xs font-bold text-accent-ink">
+          Manage <Icon path={MISC_ICON_PATH.chevronRight} size={14} sw={2.2} />
+        </span>
+      </Link>
+
+      <SectionLabel>Preferences</SectionLabel>
+      <button type="button" onClick={toggleDark} className="glass-card flex w-full items-center justify-between px-4 py-3.5 text-sm">
+        <span className="font-semibold">Dark mode</span>
+        <span className="font-bold text-accent-ink">{dark ? "On" : "Off"}</span>
+      </button>
+
       <SectionTitle>Budget</SectionTitle>
       <div className="card space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -166,9 +278,15 @@ export function MeClient({
       <div className="card space-y-2 p-4 text-sm">
         <p>{mode === "local" ? "Demo mode (local data on this server). No sign-in needed." : `Signed in as ${email ?? ""}`}</p>
         <p className="text-xs text-muted">Providers: prices {String(providers.product)} · shops {String(providers.map)} · offers {String(providers.offer)} · agent {String(providers.ai)}</p>
-        {mode !== "local" ? <a href="/auth/signout" className="inline-block font-semibold text-accent-ink">Sign out</a> : null}
         <button type="button" className="block text-xs text-muted underline" onClick={() => save({ onboardingComplete: false }, "onb").then(() => router.push("/onboarding"))}>Run setup again</button>
       </div>
+
+      {mode !== "local" ? (
+        <p className="pt-4 pb-1 text-center">
+          <a href="/auth/signout" className="text-sm font-bold text-danger">Sign out</a>
+        </p>
+      ) : null}
+
       {msg ? <p className="pt-2 text-center text-sm text-muted">{msg}</p> : null}
       <div className="h-6" />
     </div>

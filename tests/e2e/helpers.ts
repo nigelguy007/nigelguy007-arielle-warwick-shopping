@@ -14,6 +14,7 @@ export async function signInAndOnboard(page: Page, opts: { budget?: number } = {
       await page.getByRole("button", { name: `£${opts.budget}`, exact: true }).click();
     }
     await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "Skip", exact: true }).click();
     await page.getByRole("button", { name: "Use Warwick campus" }).click();
   }
   await expect(page.getByRole("heading", { name: /Hi / })).toBeVisible();

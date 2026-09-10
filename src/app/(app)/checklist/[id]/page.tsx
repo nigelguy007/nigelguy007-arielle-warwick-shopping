@@ -25,12 +25,20 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
   return (
     <main className="px-4">
-      <PageHeader title={item.item} back="/checklist" subtitle={item.category} />
-      <div className="flex flex-wrap gap-1.5">
-        {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : <Badge>{item.priority}</Badge>}
-        <Badge>{TIMING_LABELS[item.timing]}</Badge>
-        <Badge>Qty {item.qty}</Badge>
-        {item.budgetEstimate !== null ? <Badge>Est. {gbp(item.budgetEstimate)}</Badge> : null}
+      <PageHeader title="" back="/checklist" />
+      <div className="photo-placeholder h-[190px] rounded-[1.375rem] border border-border">
+        <span className="text-xs">product photo — retailer feed</span>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <Badge>{item.category}</Badge>
+        {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : null}
+      </div>
+      <h1 className="font-display mt-2 text-[23px] font-extrabold tracking-tight">{item.item}</h1>
+      <p className="mt-0.5 text-[13px] text-foreground-secondary">
+        {TIMING_LABELS[item.timing]} · Qty {item.qty}{item.budgetEstimate !== null ? ` · Est. ${gbp(item.budgetEstimate)}` : ""}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {item.priority !== "essential" ? <Badge>{item.priority}</Badge> : null}
         {supplied ? <Badge tone="success">Warwick already provides this</Badge> : null}
       </div>
       {item.notes ? <p className="pt-3 text-sm text-muted">{item.notes}</p> : null}

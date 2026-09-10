@@ -11,10 +11,10 @@ export function LocationPicker({ ctx, compact }: { ctx: Ctx; compact?: boolean }
   const [postcode, setPostcode] = useState("");
   const [showPostcode, setShowPostcode] = useState(false);
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {ctx.location ? (
-        <p className="flex items-center gap-1 text-sm">
-          <MapPin className="h-4 w-4 text-accent" /> <span className="font-medium">{ctx.location.label}</span>
+        <p className="flex items-center gap-1.5 text-sm font-semibold">
+          <MapPin className="h-4 w-4 shrink-0 text-accent" /> <span className="truncate">{ctx.location.label}</span>
         </p>
       ) : (
         <p className="text-sm text-muted">Share your location or enter a postcode to see nearby shops.</p>
@@ -32,14 +32,23 @@ export function LocationPicker({ ctx, compact }: { ctx: Ctx; compact?: boolean }
       </div>
       {showPostcode ? (
         <form
-          className="flex gap-2"
+          className="glass flex h-[46px] items-center gap-2 rounded-full px-2 pl-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (postcode.trim()) void ctx.usePostcode(postcode.trim());
           }}
         >
-          <Input value={postcode} onChange={(e) => setPostcode(e.target.value)} placeholder="e.g. CV4 7AL" autoCapitalize="characters" aria-label="Postcode" />
-          <Button type="submit" loading={ctx.status === "locating"}>Go</Button>
+          <Input
+            value={postcode}
+            onChange={(e) => setPostcode(e.target.value)}
+            placeholder="e.g. CV4 7AL"
+            autoCapitalize="characters"
+            aria-label="Postcode"
+            className="h-auto flex-1 border-none bg-transparent px-0 py-0 text-[13px] focus-visible:ring-0"
+          />
+          <Button type="submit" size="sm" loading={ctx.status === "locating"}>
+            Go
+          </Button>
         </form>
       ) : null}
       {ctx.error ? <p className="text-xs text-warn">{ctx.error}</p> : null}
