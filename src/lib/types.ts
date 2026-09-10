@@ -58,6 +58,8 @@ export interface UserChecklistEntry {
   status: ChecklistStatus;
   qty: number;
   customNotes: string;
+  /** Free-text label for which moving box/bag this item is in. Empty until set in packing mode. */
+  box: string;
   updatedAt: string;
 }
 
@@ -66,6 +68,7 @@ export interface ChecklistView extends ChecklistItem {
   status: ChecklistStatus;
   qty: number;
   customNotes: string;
+  box: string;
   updatedAt: string | null;
 }
 
@@ -118,6 +121,12 @@ export interface Purchase {
   paidPrice: number;
   voucherUsed: string | null;
   purchasedAt: string;
+  /**
+   * Receipt photo, if attached. Local/dev mode stores this as a base64 data URL directly
+   * on the record for simplicity. A production deployment should instead upload the image
+   * to Supabase Storage and store the resulting object path/URL here.
+   */
+  receiptImage: string | null;
 }
 
 export interface BasketItem {

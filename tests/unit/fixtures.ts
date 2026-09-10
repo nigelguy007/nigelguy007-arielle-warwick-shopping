@@ -1,4 +1,4 @@
-import type { AccommodationProfile, BasketItem, ChecklistView, OfferResult, ProductSearchResult, StoreResult } from "@/lib/types";
+import type { AccommodationProfile, BasketItem, ChecklistView, OfferResult, ProductSearchResult, Purchase, StoreResult } from "@/lib/types";
 
 export const NOW = new Date("2026-09-09T12:00:00Z");
 
@@ -59,6 +59,7 @@ export function item(overrides: Partial<ChecklistView> = {}): ChecklistView {
     status: "buy",
     qty: 1,
     customNotes: "",
+    box: "",
     updatedAt: null,
     ...overrides,
   };
@@ -90,6 +91,21 @@ export function offer(overrides: Partial<OfferResult> = {}): OfferResult {
 
 export function basketLine(p: ProductSearchResult, quantity = 1, id?: string): BasketItem {
   return { id: id ?? `b-${p.id}`, userId: "u", checklistItemId: null, productSnapshot: p, quantity, addedAt: NOW.toISOString() };
+}
+
+export function purchase(overrides: Partial<Purchase> = {}): Purchase {
+  return {
+    id: overrides.id ?? `pu-${Math.random().toString(36).slice(2, 8)}`,
+    userId: "u",
+    checklistItemId: null,
+    productSnapshot: null,
+    retailer: "Argos",
+    paidPrice: 10,
+    voucherUsed: null,
+    purchasedAt: NOW.toISOString(),
+    receiptImage: null,
+    ...overrides,
+  };
 }
 
 export function store(overrides: Partial<StoreResult> = {}): StoreResult {

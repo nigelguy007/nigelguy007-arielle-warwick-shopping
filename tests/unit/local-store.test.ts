@@ -38,4 +38,34 @@ describe("LocalStore + seed", () => {
     const reopened = new LocalStore(dir);
     expect((await reopened.getUserChecklistItem("arielle", duvet.id))?.status).toBe("bought");
   });
+
+  it("tracks a packing box per item and isolates it by user", async () => {
+    const store = new LocalStore(dir);
+    await seedStore(store, { userId: "arielle" });
+    const items = await store.listUserChecklist("arielle");
+    const duvet = items.find((i) => i.sourceKey === "bedding/duvet")!;
+    expect(duvet.box).toBe("");
+
+    await store.setChecklistStatus("arielle", duvet.id, "bought", { box: "Box 2" });
+    expect((await store.getUserChecklistItem("arielle", duvet.id))?.box).toBe("Box 2");
+    expect((await store.getUserChecklistItem("someone-else", duvet.id))?.box).toBe("");
+
+    // Updating status alone leaves an already-set box untouched.
+    await store.setChecklistStatus("arielle", duvet.id, "packed");
+    expect((await store.getUserChecklistItem("arielle", duvet.id))?.box).toBe("Box 2");
+  });
+
+  it("attaches a receipt image to a purchase the caller owns", async () => {
+    const store = new LocalStore(dir);
+    await seedStore(store, { userId: "arielle" });
+    const purchase = await store.addPurchase("arielle", { checklistItemId: null, productSnapshot: null, retailer: "Argos", paidPrice: 12.5, voucherUsed: null });
+    expect(purchase.receiptImage).toBeNull();
+
+    const updated = await store.updatePurchase("arielle", purchase.id, { receiptImage: "data:image/jpeg;base64,abc123" });
+    expect(updated?.receiptImage).toBe("data:image/jpeg;base64,abc123");
+    expect((await store.listPurchases("arielle"))[0].receiptImage).toBe("data:image/jpeg;base64,abc123");
+
+    expect(await store.updatePurchase("someone-else", purchase.id, { receiptImage: "data:image/jpeg;base64,nope" })).toBeNull();
+    expect(await store.updatePurchase("arielle", "not-a-real-id", { receiptImage: "data:image/jpeg;base64,nope" })).toBeNull();
+  });
 });

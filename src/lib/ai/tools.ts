@@ -43,17 +43,17 @@ export function buildAgentTools(userId: string, location: LocationContext | null
       },
     }),
     updateChecklistStatus: tool({
-      description: "Set an item's status (have, buy, bought, packed, need, wait, do_not_buy). Use for 'mark X as bought/packed'.",
-      inputSchema: z.object({ idOrName: z.string(), status: z.enum(CHECKLIST_STATUSES), paidPrice: z.number().optional().describe("If bought, what was paid in pounds") }),
-      execute: async ({ idOrName, status, paidPrice }) => {
+      description: "Set an item's status (have, buy, bought, packed, need, wait, do_not_buy), and/or which box it's packed in. Use for 'mark X as bought/packed' or 'put X in box 2'.",
+      inputSchema: z.object({ idOrName: z.string(), status: z.enum(CHECKLIST_STATUSES), paidPrice: z.number().optional().describe("If bought, what was paid in pounds"), box: z.string().optional().describe("Which moving box/bag this item is in") }),
+      execute: async ({ idOrName, status, paidPrice, box }) => {
         const store = await getStore();
         const d = await loadDashboard(userId);
         const item = d.items.find((i) => i.id === idOrName) ?? findItemByName(d.items, idOrName);
         if (!item) return { error: "Item not found" };
         if (!canTransition(item.status, status)) return { error: `Can't move ${item.item} from ${item.status} to ${status}` };
-        await store.setChecklistStatus(userId, item.id, status);
+        await store.setChecklistStatus(userId, item.id, status, { box });
         if (status === "bought" && typeof paidPrice === "number") await store.addPurchase(userId, { checklistItemId: item.id, productSnapshot: null, retailer: "", paidPrice, voucherUsed: null });
-        return { ok: true, item: item.item, from: item.status, to: status };
+        return { ok: true, item: item.item, from: item.status, to: status, box: box ?? item.box };
       },
     }),
     getAccommodationProfile: tool({

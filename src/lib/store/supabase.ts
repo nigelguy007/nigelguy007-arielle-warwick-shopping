@@ -33,7 +33,7 @@ function toChecklistItem(r: Row): ChecklistItem {
   };
 }
 function toEntry(r: Row): UserChecklistEntry {
-  return { id: s(r.id), userId: s(r.user_id), checklistItemId: s(r.checklist_item_id), status: r.status as ChecklistStatus, qty: Number(r.qty ?? 1), customNotes: s(r.custom_notes), updatedAt: s(r.updated_at) };
+  return { id: s(r.id), userId: s(r.user_id), checklistItemId: s(r.checklist_item_id), status: r.status as ChecklistStatus, qty: Number(r.qty ?? 1), customNotes: s(r.custom_notes), box: s(r.box), updatedAt: s(r.updated_at) };
 }
 function toAccommodation(r: Row): AccommodationProfile {
   return {
@@ -63,7 +63,7 @@ function toBasket(r: Row): BasketItem {
   return { id: s(r.id), userId: s(r.user_id), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), productSnapshot: r.product_snapshot as ProductSearchResult, quantity: Number(r.quantity ?? 1), addedAt: s(r.added_at) };
 }
 function toPurchase(r: Row): Purchase {
-  return { id: s(r.id), userId: s(r.user_id), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), productSnapshot: (r.product_snapshot as ProductSearchResult) ?? null, retailer: s(r.retailer), paidPrice: Number(r.paid_price), voucherUsed: r.voucher_used == null ? null : s(r.voucher_used), purchasedAt: s(r.purchased_at) };
+  return { id: s(r.id), userId: s(r.user_id), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), productSnapshot: (r.product_snapshot as ProductSearchResult) ?? null, retailer: s(r.retailer), paidPrice: Number(r.paid_price), voucherUsed: r.voucher_used == null ? null : s(r.voucher_used), purchasedAt: s(r.purchased_at), receiptImage: r.receipt_image == null ? null : s(r.receipt_image) };
 }
 
 function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
@@ -111,17 +111,18 @@ export class SupabaseStore implements DataStore, AdminStore {
     const entries = new Map((must(entriesRes, "user_checklist") as Row[]).map(toEntry).map((e) => [e.checklistItemId, e]));
     return items.map((i): ChecklistView => {
       const e = entries.get(i.id);
-      return { ...i, status: e?.status ?? defaultStatusFromTiming(i.timing), qty: e?.qty ?? i.defaultQty, customNotes: e?.customNotes ?? "", updatedAt: e?.updatedAt ?? null };
+      return { ...i, status: e?.status ?? defaultStatusFromTiming(i.timing), qty: e?.qty ?? i.defaultQty, customNotes: e?.customNotes ?? "", box: e?.box ?? "", updatedAt: e?.updatedAt ?? null };
     });
   }
   async getUserChecklistItem(userId: string, checklistItemId: string) {
     const all = await this.listUserChecklist(userId);
     return all.find((i) => i.id === checklistItemId) ?? null;
   }
-  async setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch: { qty?: number; customNotes?: string } = {}) {
+  async setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch: { qty?: number; customNotes?: string; box?: string } = {}) {
     const row: Row = { user_id: userId, checklist_item_id: checklistItemId, status, updated_at: new Date().toISOString() };
     if (patch.qty !== undefined) row.qty = patch.qty;
     if (patch.customNotes !== undefined) row.custom_notes = patch.customNotes;
+    if (patch.box !== undefined) row.box = patch.box;
     const res = await this.db.from("user_checklist").upsert(row, { onConflict: "user_id,checklist_item_id" }).select("*").single();
     return toEntry(must(res, "user_checklist upsert") as Row);
   }
@@ -163,13 +164,20 @@ export class SupabaseStore implements DataStore, AdminStore {
     const res = await this.db.from("purchases").select("*").eq("user_id", userId).order("purchased_at", { ascending: false });
     return (must(res, "purchases") as Row[]).map(toPurchase);
   }
-  async addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt"> & { purchasedAt?: string }) {
+  async addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt" | "receiptImage"> & { purchasedAt?: string; receiptImage?: string | null }) {
     const res = await this.db
       .from("purchases")
-      .insert({ user_id: userId, checklist_item_id: purchase.checklistItemId, product_snapshot: purchase.productSnapshot, retailer: purchase.retailer, paid_price: purchase.paidPrice, voucher_used: purchase.voucherUsed, purchased_at: purchase.purchasedAt ?? new Date().toISOString() })
+      .insert({ user_id: userId, checklist_item_id: purchase.checklistItemId, product_snapshot: purchase.productSnapshot, retailer: purchase.retailer, paid_price: purchase.paidPrice, voucher_used: purchase.voucherUsed, purchased_at: purchase.purchasedAt ?? new Date().toISOString(), receipt_image: purchase.receiptImage ?? null })
       .select("*")
       .single();
     return toPurchase(must(res, "purchases insert") as Row);
+  }
+  async updatePurchase(userId: string, purchaseId: string, patch: { receiptImage?: string | null }) {
+    const row: Row = {};
+    if (patch.receiptImage !== undefined) row.receipt_image = patch.receiptImage;
+    const { data, error } = await this.db.from("purchases").update(row).eq("user_id", userId).eq("id", purchaseId).select("*").maybeSingle();
+    if (error) throw new Error(`purchases update: ${error.message}`);
+    return data ? toPurchase(data as Row) : null;
   }
 
   // ---- Admin (secret key client) ----

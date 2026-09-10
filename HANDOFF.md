@@ -4,7 +4,8 @@
 
 - Onboarding (4 screens), home dashboard (still needed / bought / packed / budget left, Buy next, quick actions, "Warwick already provides").
 - Full checklist with statuses Need / Already have / Buy / Bought / Packed / Wait until arrival / Do not buy, filters, category grouping, search, per-item page, offline queue for status changes.
-- Budget + purchases; remaining budget updates when items are marked bought (from basket, item page, or agent).
+- Packing mode (`/checklist/pack`): items already have/bought grouped by a free-text "which box" label, large one-tap packed toggle, progress bar.
+- Budget + purchases; remaining budget updates when items are marked bought (from basket, item page, or agent). Purchases can have a receipt photo attached from the Me page.
 - Product search and compare with Cheapest / Best value / Nearby picks, hard compatibility filtering (induction hob, bed size, supplied appliances, prohibited items), source + checked-at on every card, manual refresh.
 - Basket grouped by retailer with estimated total, confirmed vs potential savings, six optimisation modes (preview then apply).
 - Map screen: device location (opt-in), Warwick campus, postcode; category and retailer filters; store cards with distance, open/closed, rating, "Open in Google Maps", retailer search; multi-stop Google Maps trip link for basket retailers; embedded map when a browser key is set.
@@ -13,7 +14,7 @@
 - PWA: manifest, icons, installable, offline shell, cached checklist, live-price endpoints never cached, offline banner.
 - Supabase schema + RLS + profile trigger; local file store for development.
 - Health endpoint (`/api/health`) with provider modes and per-provider success rate / latency.
-- `pnpm check` (lint, typecheck, 66 unit/integration tests) and 8 Playwright E2E scenarios pass.
+- `pnpm check` (lint, typecheck, 72 unit/integration tests) and 8 Playwright E2E scenarios pass.
 
 ## What is mocked
 
@@ -25,6 +26,7 @@
 | Student discounts | public deep links only (Student Beans, UNiDAYS) | none – would require an approved partner API | `STUDENT_BEANS_PARTNER_KEY` / `UNIDAYS_PARTNER_KEY` are reserved, unused |
 | AI agent | rule-based fallback | Vercel AI SDK via AI Gateway | `AI_GATEWAY_API_KEY`, `AI_MODEL` |
 | Data + auth | `LocalStore` demo user, no sign-in | Supabase Postgres + magic link | `DATA_MODE=supabase` + Supabase vars |
+| Receipt photos | base64 data URL stored inline on `purchases.receipt_image` | Supabase Storage bucket, storing the object path/URL instead | a receipts bucket + upload route (not built - see `Purchase.receiptImage` comment in `src/lib/types.ts`) |
 
 Mock results are badged "Mock data · not live" and are refused in production unless `ALLOW_MOCK_IN_PRODUCTION=true`.
 
@@ -60,4 +62,4 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 3. Add the parent role UI (share checklist/budget; contribution pot).
 4. Price-drop and voucher-expiry alerts (needs a cron + email/push).
 5. ~~Retailer feed adapters (Awin product feeds) to replace the shopping-search aggregator for stock-accurate data.~~ Done: `AwinFeedProductProvider` (`PRODUCT_PROVIDER=awin-feed`). Built and tested against mocked HTTP only — no real Awin datafeed account was available to verify the feed's actual column set or the download URL's exact query-parameter names against current Awin behaviour. Coverage is also inherently partial: it only searches the merchant feeds whose `AWIN_FEED_IDS` are configured, not every retailer the way the SerpApi aggregator does.
-6. Moving-day packing mode and receipt capture (nice-to-haves from the spec).
+6. ~~Moving-day packing mode and receipt capture~~ **Done.** `/checklist/pack` groups items that are `have`/`bought`/`packed` by a free-text `box` label (a new field on `user_checklist`, reusing the existing status model - no parallel data structure) with a large one-tap "packed" toggle and a progress bar. Purchases on the Me page can now have a photo attached (`Purchase.receiptImage`); local/dev mode stores it as a downscaled base64 data URL directly on the record - swap in a real upload to Supabase Storage for production (see the comment on `receiptImage` in `src/lib/types.ts`).

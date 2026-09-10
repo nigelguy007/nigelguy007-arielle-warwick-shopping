@@ -44,7 +44,7 @@ export interface DataStore {
   // User checklist
   listUserChecklist(userId: string): Promise<ChecklistView[]>;
   getUserChecklistItem(userId: string, checklistItemId: string): Promise<ChecklistView | null>;
-  setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch?: { qty?: number; customNotes?: string }): Promise<UserChecklistEntry>;
+  setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch?: { qty?: number; customNotes?: string; box?: string }): Promise<UserChecklistEntry>;
 
   // Accommodation
   listAccommodations(): Promise<AccommodationProfile[]>;
@@ -61,7 +61,9 @@ export interface DataStore {
 
   // Purchases
   listPurchases(userId: string): Promise<Purchase[]>;
-  addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt"> & { purchasedAt?: string }): Promise<Purchase>;
+  addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt" | "receiptImage"> & { purchasedAt?: string; receiptImage?: string | null }): Promise<Purchase>;
+  /** Attach/replace a purchase's receipt image. Returns null if the purchase doesn't exist or isn't the caller's. */
+  updatePurchase(userId: string, purchaseId: string, patch: { receiptImage?: string | null }): Promise<Purchase | null>;
 }
 
 /** Admin/seed operations. Local: same object. Supabase: needs the secret key. */
