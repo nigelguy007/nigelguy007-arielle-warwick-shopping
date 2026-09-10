@@ -55,6 +55,22 @@ export function MeSharing({
     }
   };
 
+  /** Opens the phone's native share sheet (WhatsApp, SMS, email, etc.) -
+   * the same picker any other app on the phone would open with. Falls back
+   * to copying the link on browsers/desktops without share support, or if
+   * the person just closes the sheet without picking anything. */
+  const share = async (url: string) => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "Warwick Move-In", text: "Follow my Warwick move-in checklist and budget:", url });
+        return;
+      } catch {
+        // Cancelled, or share isn't actually wired up here - fall back to copy.
+      }
+    }
+    copy(url);
+  };
+
   const pending = invites.filter(isLive);
 
   return (
@@ -83,8 +99,11 @@ export function MeSharing({
                 <li key={i.id} className="flex items-center justify-between gap-2 rounded-xl border border-border p-2 text-sm">
                   <span className="truncate font-mono">{i.code}</span>
                   <div className="flex shrink-0 gap-1">
+                    <Button type="button" size="sm" onClick={() => share(url)}>
+                      Share
+                    </Button>
                     <Button type="button" size="sm" variant="secondary" onClick={() => copy(url)}>
-                      {copied === url ? "Copied" : "Copy link"}
+                      {copied === url ? "Copied" : "Copy"}
                     </Button>
                     <Button type="button" size="sm" variant="ghost" loading={busy === `invite-${i.id}`} onClick={() => run(`invite-${i.id}`, () => api(`/api/share/invites/${i.id}`, { method: "DELETE" }))}>
                       Remove
