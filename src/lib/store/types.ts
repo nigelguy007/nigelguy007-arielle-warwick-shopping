@@ -5,9 +5,13 @@ import type {
   ChecklistItem,
   ChecklistStatus,
   ChecklistView,
+  Contribution,
   Profile,
   ProductSearchResult,
   Purchase,
+  SharedAccess,
+  SharedAccessView,
+  ShareInvite,
   UserChecklistEntry,
 } from "@/lib/types";
 
@@ -62,6 +66,25 @@ export interface DataStore {
   // Purchases
   listPurchases(userId: string): Promise<Purchase[]>;
   addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt"> & { purchasedAt?: string }): Promise<Purchase>;
+
+  /**
+   * Parent sharing. An "owner" (the student) invites a "viewer" (a parent) to a
+   * read-only view of their checklist and/or budget. In Supabase mode this is
+   * enforced by RLS (see supabase/migrations/0001_init.sql); in local mode there
+   * is only ever one real identity, so a redeemed invite is a self-preview - see
+   * LocalStore's docstring on redeemInvite.
+   */
+  listShares(ownerId: string): Promise<SharedAccess[]>;
+  listSharedWithMe(viewerId: string): Promise<SharedAccessView[]>;
+  revokeShare(ownerId: string, viewerId: string): Promise<void>;
+  createInvite(ownerId: string, opts: { canViewChecklist: boolean; canViewBudget: boolean; expiresInHours: number }): Promise<ShareInvite>;
+  listInvites(ownerId: string): Promise<ShareInvite[]>;
+  revokeInvite(ownerId: string, inviteId: string): Promise<void>;
+  redeemInvite(viewerId: string, code: string): Promise<SharedAccess>;
+
+  /** The "contribution pot": payments/pledges a parent logs toward the move-in budget. */
+  listContributions(ownerId: string): Promise<Contribution[]>;
+  addContribution(ownerId: string, contributorId: string, contributorName: string, input: { amount: number; note: string; checklistItemId: string | null }): Promise<Contribution>;
 }
 
 /** Admin/seed operations. Local: same object. Supabase: needs the secret key. */

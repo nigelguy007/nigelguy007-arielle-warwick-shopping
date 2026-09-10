@@ -137,6 +137,38 @@ create table if not exists public.shared_access (
   unique (owner_id, viewer_id)
 );
 
+-- A one-time link the owner generates; a parent redeems it (via redeem_share_invite
+-- below) into a shared_access row. Not readable by clients directly - only through
+-- that function - so a code cannot be enumerated or inspected by other users.
+create table if not exists public.share_invites (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  code text not null unique,
+  can_view_checklist boolean not null default true,
+  can_view_budget boolean not null default true,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  redeemed_at timestamptz,
+  redeemed_by uuid references auth.users(id) on delete set null
+);
+create index if not exists share_invites_owner_idx on public.share_invites(owner_id);
+
+-- The "pot": payments/pledges a parent logs toward the owner's move-in budget.
+-- Deliberately separate from purchases (which represent the owner's own real
+-- spend) - a contribution is tracked and shown alongside the budget, never
+-- subtracted from it automatically.
+create table if not exists public.contributions (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  contributor_id uuid not null references auth.users(id) on delete cascade,
+  contributor_name text not null default '',
+  checklist_item_id uuid references public.checklist_items(id) on delete set null,
+  amount numeric(10,2) not null check (amount >= 0),
+  note text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists contributions_owner_idx on public.contributions(owner_id);
+
 -- ---------- Auto-create profile on sign-up ----------
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -152,6 +184,47 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- ---------- Redeem a share invite ----------
+-- security definer so it can write a shared_access row for someone else's
+-- owner_id; the check is entirely inside the function (auth.uid() still resolves
+-- to the calling user's JWT), gated on a valid, unexpired, unredeemed code.
+create or replace function public.redeem_share_invite(p_code text)
+returns public.shared_access
+language plpgsql security definer set search_path = public as $$
+declare
+  v_invite public.share_invites;
+  v_access public.shared_access;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in required';
+  end if;
+
+  select * into v_invite from public.share_invites
+    where code = p_code and redeemed_at is null and expires_at > now()
+    for update;
+
+  if not found then
+    raise exception 'This invite link is invalid or has expired.';
+  end if;
+
+  if v_invite.owner_id = auth.uid() then
+    raise exception 'You cannot redeem your own invite link.';
+  end if;
+
+  insert into public.shared_access (owner_id, viewer_id, role, can_view_checklist, can_view_budget)
+  values (v_invite.owner_id, auth.uid(), 'parent', v_invite.can_view_checklist, v_invite.can_view_budget)
+  on conflict (owner_id, viewer_id) do update
+    set can_view_checklist = excluded.can_view_checklist,
+        can_view_budget = excluded.can_view_budget
+  returning * into v_access;
+
+  update public.share_invites set redeemed_at = now(), redeemed_by = auth.uid() where id = v_invite.id;
+
+  return v_access;
+end $$;
+
+grant execute on function public.redeem_share_invite(text) to authenticated;
+
 -- ---------- Row Level Security ----------
 alter table public.profiles enable row level security;
 alter table public.checklist_items enable row level security;
@@ -163,14 +236,21 @@ alter table public.basket_items enable row level security;
 alter table public.purchases enable row level security;
 alter table public.budgets enable row level security;
 alter table public.shared_access enable row level security;
+alter table public.share_invites enable row level security;
+alter table public.contributions enable row level security;
 
--- profiles: owner only
+-- profiles: owner only, plus a read for a parent the owner shared with (name +
+-- accommodation only - see toProfile/toAccommodation; nothing more sensitive lives here)
 drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own on public.profiles for select using (auth.uid() = id);
 drop policy if exists profiles_update_own on public.profiles;
 create policy profiles_update_own on public.profiles for update using (auth.uid() = id) with check (auth.uid() = id);
 drop policy if exists profiles_insert_own on public.profiles;
 create policy profiles_insert_own on public.profiles for insert with check (auth.uid() = id);
+drop policy if exists profiles_shared_read on public.profiles;
+create policy profiles_shared_read on public.profiles for select using (
+  exists (select 1 from public.shared_access s where s.owner_id = profiles.id and s.viewer_id = auth.uid())
+);
 
 -- base checklist + accommodation: read-only for signed-in users; writes only via service role
 drop policy if exists checklist_items_read on public.checklist_items;
@@ -209,3 +289,26 @@ drop policy if exists shared_access_owner on public.shared_access;
 create policy shared_access_owner on public.shared_access for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 drop policy if exists shared_access_viewer_read on public.shared_access;
 create policy shared_access_viewer_read on public.shared_access for select using (auth.uid() = viewer_id);
+
+-- share_invites: owner manages their own invites; nobody can select by code
+-- directly (redemption goes through redeem_share_invite, which bypasses RLS)
+drop policy if exists share_invites_owner_all on public.share_invites;
+create policy share_invites_owner_all on public.share_invites for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
+-- contributions: owner sees/manages everything in their own pot; any parent the
+-- owner shared budget access with can see the whole pot (so contributors don't
+-- duplicate each other) and manage their own entries in it
+drop policy if exists contributions_owner_all on public.contributions;
+create policy contributions_owner_all on public.contributions for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists contributions_shared_read on public.contributions;
+create policy contributions_shared_read on public.contributions for select using (
+  exists (select 1 from public.shared_access s where s.owner_id = contributions.owner_id and s.viewer_id = auth.uid() and s.can_view_budget)
+);
+drop policy if exists contributions_contributor_write on public.contributions;
+create policy contributions_contributor_write on public.contributions for insert with check (
+  auth.uid() = contributor_id and exists (select 1 from public.shared_access s where s.owner_id = contributions.owner_id and s.viewer_id = auth.uid() and s.can_view_budget)
+);
+drop policy if exists contributions_contributor_update on public.contributions;
+create policy contributions_contributor_update on public.contributions for update using (auth.uid() = contributor_id) with check (auth.uid() = contributor_id);
+drop policy if exists contributions_contributor_delete on public.contributions;
+create policy contributions_contributor_delete on public.contributions for delete using (auth.uid() = contributor_id);

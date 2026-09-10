@@ -53,6 +53,51 @@ describe.runIf(enabled)("Supabase RLS isolation", () => {
     const spoof = await b.client.from("checklist_items").insert({ source_key: "hack/x", category: "x", item: "x" });
     expect(spoof.error).not.toBeNull();
   });
+
+  it("a parent redeeming a share invite gains exactly the granted read access, and only that", async () => {
+    const [a, b] = users;
+    const email = `rls-c-${Date.now()}@example.com`;
+    const password = `Test-${Math.random().toString(36).slice(2)}-Aa1!`;
+    const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+    if (error) throw error;
+    const c = createClient(url as string, anon as string, { auth: { persistSession: false } });
+    const { error: signInError } = await c.auth.signInWithPassword({ email, password });
+    if (signInError) throw signInError;
+    const parent = { id: data.user.id, client: c };
+    users.push(parent);
+
+    // a shares only the checklist, not the budget
+    const { data: invite, error: inviteError } = await a.client.from("share_invites").insert({ owner_id: a.id, code: `RLS${Date.now()}`, can_view_checklist: true, can_view_budget: false, expires_at: new Date(Date.now() + 3_600_000).toISOString() }).select("*").single();
+    expect(inviteError).toBeNull();
+
+    // the parent cannot read the invite directly (no select policy for non-owners)
+    expect((await parent.client.from("share_invites").select("*").eq("id", invite!.id as string)).data).toEqual([]);
+
+    // redeeming it (the owner cannot redeem their own invite)
+    expect((await a.client.rpc("redeem_share_invite", { p_code: invite!.code as string })).error).not.toBeNull();
+    const redeemed = await parent.client.rpc("redeem_share_invite", { p_code: invite!.code as string });
+    expect(redeemed.error).toBeNull();
+    expect(redeemed.data?.owner_id ?? redeemed.data?.[0]?.owner_id).toBe(a.id);
+
+    // redeeming again fails (already redeemed)
+    expect((await parent.client.rpc("redeem_share_invite", { p_code: invite!.code as string })).error).not.toBeNull();
+
+    // the parent can now read a's checklist, but not a's budget (not granted) or purchases
+    expect((await parent.client.from("user_checklist").select("*").eq("user_id", a.id)).data).toHaveLength(1);
+    expect((await parent.client.from("budgets").select("*").eq("user_id", a.id)).data).toEqual([]);
+    expect((await parent.client.from("purchases").select("*").eq("user_id", a.id)).data).toEqual([]);
+
+    // the unrelated stranger (b) still sees nothing of a's, even though a is now sharing with someone
+    expect((await b.client.from("user_checklist").select("*").eq("user_id", a.id)).data).toEqual([]);
+
+    // the parent can log a contribution once budget access is granted; toggle it on directly for this check
+    expect((await a.client.from("shared_access").update({ can_view_budget: true }).eq("owner_id", a.id).eq("viewer_id", parent.id)).error).toBeNull();
+    const contribution = await parent.client.from("contributions").insert({ owner_id: a.id, contributor_id: parent.id, contributor_name: "Mum", amount: 42 });
+    expect(contribution.error).toBeNull();
+    expect((await a.client.from("contributions").select("*").eq("owner_id", a.id)).data).toHaveLength(1);
+    // but the parent cannot log a contribution against someone who hasn't shared their budget with them
+    expect((await parent.client.from("contributions").insert({ owner_id: b.id, contributor_id: parent.id, contributor_name: "Mum", amount: 1 })).error).not.toBeNull();
+  });
 });
 
 describe.skipIf(enabled)("Supabase RLS isolation", () => {

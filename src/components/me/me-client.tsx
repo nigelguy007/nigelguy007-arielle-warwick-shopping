@@ -8,12 +8,37 @@ import { Chip, ChipRow } from "@/components/ui/chip";
 import { SectionTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { gbp } from "@/lib/utils";
-import type { AccommodationProfile, Profile, Purchase } from "@/lib/types";
+import { MeSharing } from "@/components/share/me-sharing";
+import type { AccommodationProfile, Profile, Purchase, SharedAccess, SharedAccessView, ShareInvite } from "@/lib/types";
 import type { BudgetSummary } from "@/lib/budget/math";
 
 const PRESETS = [100, 200, 300, 500];
 
-export function MeClient({ profile, accommodations, budget, purchases, mode, email, providers }: { profile: Profile; accommodations: AccommodationProfile[]; budget: BudgetSummary; purchases: Purchase[]; mode: string; email: string | null; providers: Record<string, unknown> }) {
+export function MeClient({
+  profile,
+  accommodations,
+  budget,
+  purchases,
+  mode,
+  email,
+  providers,
+  invites,
+  shares,
+  sharedWithMe,
+  appUrl,
+}: {
+  profile: Profile;
+  accommodations: AccommodationProfile[];
+  budget: BudgetSummary;
+  purchases: Purchase[];
+  mode: string;
+  email: string | null;
+  providers: Record<string, unknown>;
+  invites: ShareInvite[];
+  shares: SharedAccess[];
+  sharedWithMe: SharedAccessView[];
+  appUrl: string;
+}) {
   const router = useRouter();
   const [amount, setAmount] = useState(budget.budget?.toString() ?? "");
   const [saving, setSaving] = useState<string | null>(null);
@@ -89,6 +114,8 @@ export function MeClient({ profile, accommodations, budget, purchases, mode, ema
           ))}
         </ul>
       )}
+
+      <MeSharing ownerId={profile.id} invites={invites} shares={shares} sharedWithMe={sharedWithMe} appUrl={appUrl} isLocalDemo={mode === "local"} />
 
       <SectionTitle>Account</SectionTitle>
       <div className="card space-y-2 p-4 text-sm">
