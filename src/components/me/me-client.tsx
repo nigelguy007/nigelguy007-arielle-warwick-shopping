@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Camera } from "lucide-react";
 import { api } from "@/lib/client/api";
+import { fileToDataUrl } from "@/lib/client/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -18,7 +20,22 @@ export function MeClient({ profile, accommodations, budget, purchases, mode, ema
   const [amount, setAmount] = useState(budget.budget?.toString() ?? "");
   const [saving, setSaving] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [receiptSaving, setReceiptSaving] = useState<string | null>(null);
   const acc = accommodations.find((a) => a.slug === profile.accommodationSlug) ?? null;
+
+  const attachReceipt = async (purchaseId: string, file: File) => {
+    setReceiptSaving(purchaseId);
+    setMsg(null);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      await api(`/api/purchases/${purchaseId}`, { method: "PATCH", body: JSON.stringify({ receiptImage: dataUrl }) });
+      router.refresh();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Couldn't save that receipt");
+    } finally {
+      setReceiptSaving(null);
+    }
+  };
 
   const save = async (patch: Record<string, unknown>, key: string) => {
     setSaving(key);
@@ -85,7 +102,35 @@ export function MeClient({ profile, accommodations, budget, purchases, mode, ema
       {purchases.length === 0 ? <p className="card p-4 text-sm text-muted">Nothing bought yet.</p> : (
         <ul className="card divide-y divide-border p-0 text-sm">
           {purchases.map((p) => (
-            <li key={p.id} className="flex justify-between px-4 py-3"><span>{p.productSnapshot?.title ?? p.retailer ?? "Purchase"}</span><span className="font-semibold">{gbp(p.paidPrice)}</span></li>
+            <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate">{p.productSnapshot?.title ?? p.retailer ?? "Purchase"}</p>
+                <p className="text-xs text-muted">{new Date(p.purchasedAt).toLocaleDateString("en-GB")}</p>
+              </div>
+              <span className="font-semibold">{gbp(p.paidPrice)}</span>
+              <label className="tap relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border text-muted" aria-label={p.receiptImage ? "Replace receipt photo" : "Add receipt photo"}>
+                {receiptSaving === p.id ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+                ) : p.receiptImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- receipts are stored as inline data URLs, not static assets
+                  <img src={p.receiptImage} alt="Receipt" className="h-full w-full object-cover" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  disabled={receiptSaving === p.id}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) void attachReceipt(p.id, file);
+                  }}
+                />
+              </label>
+            </li>
           ))}
         </ul>
       )}

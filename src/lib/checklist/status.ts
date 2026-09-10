@@ -63,3 +63,41 @@ export function summarise(items: ChecklistView[]): ChecklistSummary {
     essentialsDone: essentials.filter(done).length,
   };
 }
+
+/** Items Arielle actually has in hand (have/bought/packed) - the ones relevant to moving-day packing mode. */
+export function packableItems(items: ChecklistView[]): ChecklistView[] {
+  return items.filter((i) => i.status === "have" || i.status === "bought" || i.status === "packed");
+}
+
+export const UNBOXED = "Unsorted";
+
+export interface PackingGroup {
+  box: string;
+  items: ChecklistView[];
+}
+
+/** Groups packable items by their assigned box label; items with no box yet fall under UNBOXED, sorted last. */
+export function groupByBox(items: ChecklistView[]): PackingGroup[] {
+  const byBox = new Map<string, ChecklistView[]>();
+  for (const i of items) {
+    const box = i.box.trim() || UNBOXED;
+    byBox.set(box, [...(byBox.get(box) ?? []), i]);
+  }
+  return [...byBox.entries()]
+    .map(([box, boxItems]) => ({ box, items: boxItems }))
+    .sort((a, b) => {
+      if (a.box === UNBOXED) return 1;
+      if (b.box === UNBOXED) return -1;
+      return a.box.localeCompare(b.box);
+    });
+}
+
+export interface PackingProgress {
+  total: number;
+  packed: number;
+}
+
+/** Progress for the moving-day packing screen: how many packable items are already marked packed. */
+export function packingProgress(items: ChecklistView[]): PackingProgress {
+  return { total: items.length, packed: items.filter((i) => i.status === "packed").length };
+}

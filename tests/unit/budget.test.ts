@@ -40,7 +40,7 @@ describe("basket maths", () => {
 
   it("summarises budget with spent and committed", () => {
     const totals = calculateBasket([basketLine(product({ currentPrice: 20, totalPrice: 20 }))], [], NOW);
-    const s = summariseBudget({ id: "b", userId: "u", name: "x", amount: 200, currency: "GBP", createdAt: "" }, [{ id: "p", userId: "u", checklistItemId: null, productSnapshot: null, retailer: "", paidPrice: 45.5, voucherUsed: null, purchasedAt: "" }], totals);
+    const s = summariseBudget({ id: "b", userId: "u", name: "x", amount: 200, currency: "GBP", createdAt: "" }, [{ id: "p", userId: "u", checklistItemId: null, productSnapshot: null, retailer: "", paidPrice: 45.5, voucherUsed: null, purchasedAt: "", receiptImage: null }], totals);
     expect(s).toEqual({ budget: 200, spent: 45.5, committed: 20, remaining: 154.5, remainingAfterBasket: 134.5 });
     expect(summariseBudget(null, [], totals).remaining).toBeNull();
   });

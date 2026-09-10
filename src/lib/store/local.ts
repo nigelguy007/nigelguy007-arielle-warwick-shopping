@@ -92,6 +92,7 @@ export class LocalStore implements DataStore, AdminStore {
       status: entry?.status ?? defaultStatusFromTiming(item.timing),
       qty: entry?.qty ?? item.defaultQty,
       customNotes: entry?.customNotes ?? "",
+      box: entry?.box ?? "",
       updatedAt: entry?.updatedAt ?? null,
     };
   }
@@ -104,18 +105,19 @@ export class LocalStore implements DataStore, AdminStore {
     if (!item) return null;
     return this.view(item, this.state.userChecklist.find((e) => e.userId === userId && e.checklistItemId === checklistItemId));
   }
-  async setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch: { qty?: number; customNotes?: string } = {}) {
+  async setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch: { qty?: number; customNotes?: string; box?: string } = {}) {
     const item = await this.getChecklistItem(checklistItemId);
     if (!item) throw new Error("Checklist item not found");
     const now = new Date().toISOString();
     let entry = this.state.userChecklist.find((e) => e.userId === userId && e.checklistItemId === checklistItemId);
     if (!entry) {
-      entry = { id: randomUUID(), userId, checklistItemId, status, qty: patch.qty ?? item.defaultQty, customNotes: patch.customNotes ?? "", updatedAt: now };
+      entry = { id: randomUUID(), userId, checklistItemId, status, qty: patch.qty ?? item.defaultQty, customNotes: patch.customNotes ?? "", box: patch.box ?? "", updatedAt: now };
       this.state.userChecklist.push(entry);
     } else {
       entry.status = status;
       if (patch.qty !== undefined) entry.qty = patch.qty;
       if (patch.customNotes !== undefined) entry.customNotes = patch.customNotes;
+      if (patch.box !== undefined) entry.box = patch.box;
       entry.updatedAt = now;
     }
     this.persist();
@@ -167,11 +169,19 @@ export class LocalStore implements DataStore, AdminStore {
   async listPurchases(userId: string) {
     return this.state.purchases.filter((p) => p.userId === userId).sort((a, b) => b.purchasedAt.localeCompare(a.purchasedAt));
   }
-  async addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt"> & { purchasedAt?: string }) {
-    const p: Purchase = { id: randomUUID(), userId, purchasedAt: purchase.purchasedAt ?? new Date().toISOString(), ...purchase };
+  async addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt" | "receiptImage"> & { purchasedAt?: string; receiptImage?: string | null }) {
+    const { purchasedAt, receiptImage, ...rest } = purchase;
+    const p: Purchase = { id: randomUUID(), userId, purchasedAt: purchasedAt ?? new Date().toISOString(), receiptImage: receiptImage ?? null, ...rest };
     this.state.purchases.push(p);
     this.persist();
     return p;
+  }
+  async updatePurchase(userId: string, purchaseId: string, patch: { receiptImage?: string | null }) {
+    const p = this.state.purchases.find((x) => x.userId === userId && x.id === purchaseId);
+    if (!p) return null;
+    if (patch.receiptImage !== undefined) p.receiptImage = patch.receiptImage;
+    this.persist();
+    return { ...p };
   }
 
   // ---- Admin / seed ----
