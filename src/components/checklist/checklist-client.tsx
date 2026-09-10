@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronRight, Search } from "lucide-react";
 import { Chip, ChipRow } from "@/components/ui/chip";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StampBadge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { StatusActions } from "./status-actions";
 import { STATUS_LABELS, type ChecklistStatus, type ChecklistView } from "@/lib/types";
@@ -108,7 +108,7 @@ export function ChecklistClient({ initialItems, supplied }: { initialItems: Chec
                         <p className={`font-medium ${item.status === "packed" || item.status === "do_not_buy" ? "text-muted line-through" : ""}`}>{item.item}{item.qty > 1 ? <span className="text-muted"> × {item.qty}</span> : null}</p>
                         <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
                           <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABELS[item.status]}</Badge>
-                          {item.priority === "essential" ? <Badge tone="accent">Essential</Badge> : null}
+                          {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : null}
                           {isSupplied ? <Badge tone="success">Warwick provides</Badge> : null}
                         </div>
                       </button>

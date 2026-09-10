@@ -49,7 +49,7 @@ export function OnboardingFlow({ accommodations, firstName }: { accommodations: 
 
       {step === 0 ? (
         <section className="flex flex-1 flex-col justify-center gap-4">
-          <h1 className="text-3xl font-bold tracking-tight">Let&apos;s get you ready for Warwick</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Let&apos;s get you ready for Warwick</h1>
           <p className="text-muted">A checklist that knows what you already have, what to buy next, where it&apos;s cheapest, and how much you have left.</p>
           <label className="text-sm font-medium">Your first name<Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="Arielle" /></label>
           <Button size="lg" onClick={() => setStep(1)}>Start</Button>
@@ -58,7 +58,7 @@ export function OnboardingFlow({ accommodations, firstName }: { accommodations: 
 
       {step === 1 ? (
         <section className="flex flex-1 flex-col gap-4 pt-8">
-          <h1 className="text-2xl font-bold tracking-tight">Which Warwick accommodation are you staying in?</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Which Warwick accommodation are you staying in?</h1>
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search residences" aria-label="Search residences" />
           <div className="flex flex-wrap gap-2">
             {filtered.map((a) => (
@@ -78,7 +78,7 @@ export function OnboardingFlow({ accommodations, firstName }: { accommodations: 
 
       {step === 2 ? (
         <section className="flex flex-1 flex-col gap-4 pt-8">
-          <h1 className="text-2xl font-bold tracking-tight">How much do you want to spend?</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">How much do you want to spend?</h1>
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map((p) => (
               <Button key={p} variant={budget === p ? "primary" : "ghost"} size="lg" onClick={() => { setBudget(p); setCustom(""); }}>£{p}</Button>
@@ -91,7 +91,7 @@ export function OnboardingFlow({ accommodations, firstName }: { accommodations: 
 
       {step === 3 ? (
         <section className="flex flex-1 flex-col gap-4 pt-8">
-          <h1 className="text-2xl font-bold tracking-tight">Share your location and I can find shops near you.</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Share your location and I can find shops near you.</h1>
           <p className="text-sm text-muted">Only used when you search. Nothing is tracked or stored.</p>
           <Button size="lg" onClick={() => { loc.useDevice(); }} loading={loc.status === "locating"}>Use my location</Button>
           <Button size="lg" variant="secondary" onClick={() => { loc.useCampus(); void finish("CV4 7AL"); }} loading={saving}>Use Warwick campus</Button>

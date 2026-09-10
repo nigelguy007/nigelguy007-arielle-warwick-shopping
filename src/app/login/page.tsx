@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-6" style={{ paddingTop: "var(--sat)" }}>
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Warwick Move-In</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Warwick Move-In</h1>
         <p className="text-muted">Sign in to see your checklist and budget.</p>
       </div>
       {env.dataMode === "local" ? (

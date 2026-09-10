@@ -4,7 +4,7 @@ import Link from "next/link";
 import { api } from "@/lib/client/api";
 import { locationParams, readStoredLocation } from "@/lib/client/location";
 import { ProductCard } from "@/components/shop/product-card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StampBadge } from "@/components/ui/badge";
 import { gbp } from "@/lib/utils";
 import type { CompareResult } from "@/lib/services/compare";
 import type { BuyNextCandidate } from "@/lib/recommendations/buy-next";
@@ -57,7 +57,7 @@ export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
           <p className="font-semibold">{item.item}{item.qty > 1 ? ` × ${item.qty}` : ""}</p>
           <p className="text-xs text-muted">{candidate.reason}{candidate.estimatedCost !== null ? ` · est. ${gbp(candidate.estimatedCost)}` : ""}</p>
         </div>
-        <Badge tone={item.priority === "essential" ? "accent" : "neutral"}>{item.priority}</Badge>
+        {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : <Badge tone="neutral">{item.priority}</Badge>}
       </Link>
       {pick === undefined ? <div className="card h-28 animate-pulse bg-black/5" /> : null}
       {pick ? <ProductCard pick={pick} label={meta?.mock ? undefined : "Best value"} compact onAdd={add} adding={adding} onBought={bought} onNearby={() => router.push(`/map?retailer=${encodeURIComponent(pick.product.retailer)}&q=${encodeURIComponent(item.item)}`)} /> : null}

@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { getStore } from "@/lib/store";
 import { PageHeader } from "@/components/nav/page-header";
 import { SectionTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StampBadge } from "@/components/ui/badge";
 import { StatusActions } from "@/components/checklist/status-actions";
 import { CompareView } from "@/components/shop/compare-view";
 import { STATUS_LABELS, TIMING_LABELS } from "@/lib/types";
@@ -27,7 +27,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     <main className="px-4">
       <PageHeader title={item.item} back="/checklist" subtitle={item.category} />
       <div className="flex flex-wrap gap-1.5">
-        <Badge tone="accent">{item.priority}</Badge>
+        {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : <Badge>{item.priority}</Badge>}
         <Badge>{TIMING_LABELS[item.timing]}</Badge>
         <Badge>Qty {item.qty}</Badge>
         {item.budgetEstimate !== null ? <Badge>Est. {gbp(item.budgetEstimate)}</Badge> : null}

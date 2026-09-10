@@ -65,7 +65,7 @@ export function BasketView({ basket, totals, budget, onSearch }: { basket: Baske
           <p className="text-sm text-muted">
             {totals.retailerCount} {totals.retailerCount === 1 ? "shop" : "shops"} · {totals.itemCount} {totals.itemCount === 1 ? "item" : "items"}
           </p>
-          <p className="text-2xl font-bold">{gbp(totals.estimatedTotal)}</p>
+          <p className="font-display text-2xl font-bold">{gbp(totals.estimatedTotal)}</p>
         </div>
         <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted">
           {totals.delivery > 0 ? <span>incl. {gbp(totals.delivery)} delivery</span> : null}
