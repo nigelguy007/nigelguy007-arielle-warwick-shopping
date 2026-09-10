@@ -2,12 +2,14 @@ import "server-only";
 import { env } from "@/lib/env";
 import { hashKey, namedCache, TTL } from "@/lib/cache";
 import type { ProductSearchInput, ProductSearchResult } from "@/lib/types";
+import { AwinFeedProductProvider } from "./awin-feed";
 import { MockProductProvider } from "./mock";
 import { SerpApiProductProvider } from "./serpapi";
 import type { ProductSearchProvider } from "./types";
 
 export function getProductProvider(): ProductSearchProvider {
   if (env.productProvider === "serpapi") return new SerpApiProductProvider(env.serpapiKey);
+  if (env.productProvider === "awin-feed") return new AwinFeedProductProvider(env.awinFeed.apiKey, env.awinFeed.feedIds);
   return new MockProductProvider();
 }
 

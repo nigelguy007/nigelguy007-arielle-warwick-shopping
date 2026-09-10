@@ -19,7 +19,7 @@
 
 | Provider | Mock | Live adapter | Needs |
 |---|---|---|---|
-| Product prices | `MockProductProvider` (~40 illustrative UK listings) | `SerpApiProductProvider` (Google Shopping, `gl=uk`, Coventry localisation) | `PRODUCT_PROVIDER=serpapi`, `SERPAPI_API_KEY` |
+| Product prices | `MockProductProvider` (~40 illustrative UK listings) | `SerpApiProductProvider` (Google Shopping, `gl=uk`, Coventry localisation) or `AwinFeedProductProvider` (Awin Create-a-Feed retailer product datafeeds — stock-accurate but limited to configured merchants) | `PRODUCT_PROVIDER=serpapi` + `SERPAPI_API_KEY`, or `PRODUCT_PROVIDER=awin-feed` + `AWIN_DATAFEED_API_KEY` + `AWIN_FEED_IDS` |
 | Nearby stores / geocoding | `MockMapProvider` (14 approximate Coventry/Leamington stores, 4 postcodes) | `GoogleMapProvider` (Places API (New) Nearby + Text Search with field masks, Geocoding, Routes when enabled) | `MAP_PROVIDER=google`, `GOOGLE_MAPS_SERVER_API_KEY`, optional `GOOGLE_ROUTES_ENABLED=true`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` for the in-app map |
 | Vouchers | `MockOfferProvider` (2 verified, 1 expired, 2 unverified) | `AwinOfferProvider` (publisher promotions API, GB region) | `OFFER_PROVIDER=awin`, `AWIN_PUBLISHER_ID`, `AWIN_ACCESS_TOKEN` |
 | Student discounts | public deep links only (Student Beans, UNiDAYS) | none – would require an approved partner API | `STUDENT_BEANS_PARTNER_KEY` / `UNIDAYS_PARTNER_KEY` are reserved, unused |
@@ -59,5 +59,5 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 2. Persist provider caches to the Supabase cache tables so all serverless instances share them.
 3. Add the parent role UI (share checklist/budget; contribution pot).
 4. Price-drop and voucher-expiry alerts (needs a cron + email/push).
-5. Retailer feed adapters (Awin product feeds) to replace the shopping-search aggregator for stock-accurate data.
+5. ~~Retailer feed adapters (Awin product feeds) to replace the shopping-search aggregator for stock-accurate data.~~ Done: `AwinFeedProductProvider` (`PRODUCT_PROVIDER=awin-feed`). Built and tested against mocked HTTP only — no real Awin datafeed account was available to verify the feed's actual column set or the download URL's exact query-parameter names against current Awin behaviour. Coverage is also inherently partial: it only searches the merchant feeds whose `AWIN_FEED_IDS` are configured, not every retailer the way the SerpApi aggregator does.
 6. Moving-day packing mode and receipt capture (nice-to-haves from the spec).

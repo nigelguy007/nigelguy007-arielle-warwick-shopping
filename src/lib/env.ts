@@ -1,7 +1,7 @@
 // Server-side environment access. Never import this from client components.
 import "server-only";
 
-type ProductProvider = "mock" | "serpapi";
+type ProductProvider = "mock" | "serpapi" | "awin-feed";
 type MapProvider = "mock" | "google";
 type OfferProvider = "mock" | "awin";
 type DataMode = "local" | "supabase";
@@ -32,8 +32,10 @@ export const env = {
     return process.env.LOCAL_DATA_DIR || (process.env.VERCEL ? "/tmp/arielle-warwick-data" : ".data");
   },
   get productProvider(): ProductProvider {
-    const p = pick(process.env.PRODUCT_PROVIDER, ["mock", "serpapi"] as const, "mock");
-    return p === "serpapi" && !process.env.SERPAPI_API_KEY ? "mock" : p;
+    const p = pick(process.env.PRODUCT_PROVIDER, ["mock", "serpapi", "awin-feed"] as const, "mock");
+    if (p === "serpapi" && !process.env.SERPAPI_API_KEY) return "mock";
+    if (p === "awin-feed" && !(process.env.AWIN_DATAFEED_API_KEY && process.env.AWIN_FEED_IDS)) return "mock";
+    return p;
   },
   get mapProvider(): MapProvider {
     const p = pick(process.env.MAP_PROVIDER, ["mock", "google"] as const, "mock");
@@ -67,6 +69,22 @@ export const env = {
   },
   get awin() {
     return { publisherId: process.env.AWIN_PUBLISHER_ID ?? "", accessToken: process.env.AWIN_ACCESS_TOKEN ?? "" };
+  },
+  /**
+   * Awin's product *datafeed* download API (Create-a-Feed) uses a different
+   * credential to the Publisher promotions API above: a datafeed-specific API key,
+   * not the `AWIN_ACCESS_TOKEN` OAuth bearer token. It also has no free-text search
+   * across advertisers - a publisher configures the numeric feed id(s) (`fid`) of
+   * the advertiser programmes they want searched.
+   */
+  get awinFeed() {
+    return {
+      apiKey: process.env.AWIN_DATAFEED_API_KEY ?? "",
+      feedIds: (process.env.AWIN_FEED_IDS ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
   },
   get demoFirstName() {
     return process.env.LOCAL_DEMO_FIRST_NAME || "Arielle";
