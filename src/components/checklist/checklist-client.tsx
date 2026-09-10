@@ -2,13 +2,29 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, ChevronDown, Search, FileText, ShowerHead, BedDouble, SprayCan, Shirt, Plug, UtensilsCrossed, HeartPulse, CookingPot, WashingMachine, DoorOpen, BookOpen, Package } from "lucide-react";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Badge, StampBadge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { StatusActions } from "./status-actions";
 import { STATUS_LABELS, type ChecklistStatus, type ChecklistView } from "@/lib/types";
 import { pendingCount, subscribePending } from "@/lib/client/offline-queue";
+
+const CATEGORY_ICON: Record<string, typeof FileText> = {
+  Admin: FileText,
+  Bathroom: ShowerHead,
+  Bedding: BedDouble,
+  Cleaning: SprayCan,
+  Clothing: Shirt,
+  Electronics: Plug,
+  Food: UtensilsCrossed,
+  Health: HeartPulse,
+  Kitchen: CookingPot,
+  Laundry: WashingMachine,
+  Room: DoorOpen,
+  Study: BookOpen,
+};
+const RESOLVED_STATUSES: ChecklistStatus[] = ["bought", "packed", "do_not_buy", "have"];
 
 type Filter = "all" | "essentials" | "buy_before" | "take_from_home" | "wait" | "bought" | "packed" | "needed" | "unpacked";
 const FILTERS: Array<{ key: Filter; label: string }> = [
@@ -69,6 +85,21 @@ export function ChecklistClient({ initialItems, supplied }: { initialItems: Chec
     for (const i of visible) m.set(i.category, [...(m.get(i.category) ?? []), i]);
     return [...m.entries()];
   }, [visible]);
+  // Sections fully resolved (nothing left to decide) start collapsed so the
+  // list doesn't read as one undifferentiated 77-row spreadsheet; anything
+  // still needing attention stays open. Computed once from the full initial
+  // list (not the filtered `visible`/`grouped`) so it's correct regardless
+  // of which filter the URL landed on. Toggling is manual after that.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    const byCategory = new Map<string, ChecklistView[]>();
+    for (const i of initialItems) byCategory.set(i.category, [...(byCategory.get(i.category) ?? []), i]);
+    const initial = new Set<string>();
+    for (const [cat, list] of byCategory) {
+      if (list.every((i) => RESOLVED_STATUSES.includes(i.status))) initial.add(cat);
+    }
+    return initial;
+  });
+  const toggleCategory = (cat: string) => setCollapsed((prev) => { const next = new Set(prev); if (next.has(cat)) next.delete(cat); else next.add(cat); return next; });
 
   return (
     <div>
@@ -92,11 +123,26 @@ export function ChecklistClient({ initialItems, supplied }: { initialItems: Chec
       </div>
       {pending > 0 ? <p className="px-4 pt-2 text-xs text-warn">{pending} change{pending === 1 ? "" : "s"} waiting to sync.</p> : null}
       <p className="px-4 pt-2 text-xs text-muted">{visible.length} of {items.length} items</p>
-      <div className="space-y-4 px-4 pt-2">
+      <div className="space-y-3 px-4 pt-2">
         {grouped.length === 0 ? <p className="card p-4 text-sm text-muted">Nothing matches that.</p> : null}
-        {grouped.map(([cat, list]) => (
+        {grouped.map(([cat, list]) => {
+          const CatIcon = CATEGORY_ICON[cat] ?? Package;
+          const done = list.filter((i) => RESOLVED_STATUSES.includes(i.status)).length;
+          const isCollapsed = collapsed.has(cat);
+          return (
           <section key={cat}>
-            <h2 className="px-1 pb-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">{cat}</h2>
+            <button
+              type="button"
+              onClick={() => toggleCategory(cat)}
+              aria-expanded={!isCollapsed}
+              className="tap flex w-full items-center gap-2 rounded-[var(--radius-chip)] px-1 py-1.5 text-left focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <CatIcon className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+              <h2 className="flex-1 text-sm font-bold">{cat}</h2>
+              <span className="tabular text-xs text-muted">{done}/{list.length}</span>
+              <ChevronDown className={`h-4 w-4 shrink-0 text-muted transition-transform ${isCollapsed ? "-rotate-90" : ""}`} aria-hidden="true" />
+            </button>
+            {isCollapsed ? null : (
             <ul className="card divide-y divide-border p-0">
               {list.map((item) => {
                 const open = expanded === item.id;
@@ -124,8 +170,10 @@ export function ChecklistClient({ initialItems, supplied }: { initialItems: Chec
                 );
               })}
             </ul>
+            )}
           </section>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, Percent, GraduationCap, PackageOpen, Info } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { loadDashboard } from "@/lib/services/dashboard";
-import { TicketHero, StatRow } from "@/components/home/stat-card";
+import { ManifestHero, StatRow } from "@/components/home/stat-card";
 import { BuyNextCard } from "@/components/home/buy-next-card";
 import { SectionTitle } from "@/components/ui/card";
 import { gbp } from "@/lib/utils";
@@ -16,7 +16,7 @@ export default async function HomePage() {
 
   return (
     <main className="px-4" style={{ paddingTop: "calc(var(--sat) + 1rem)" }}>
-      <TicketHero
+      <ManifestHero
         name={name}
         place={d.accommodation ? `Warwick move-in - ${d.accommodation.name}` : "Warwick move-in"}
         left={{ label: "Still needed", value: `${d.summary.stillNeeded}`, href: "/checklist?filter=needed" }}
