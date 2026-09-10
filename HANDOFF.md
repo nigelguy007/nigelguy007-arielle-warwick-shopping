@@ -46,7 +46,7 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 ## Known limitations
 
 - Local mode is single-instance and file-backed: fine for development and a demo, not for Vercel (read-only filesystem) or multiple users.
-- Provider caches are per server instance (in memory). The `product_search_cache` / `offers_cache` tables exist for a shared cache but are not yet used.
+- Product search and offers caches are shared across serverless instances via the `product_search_cache` / `offers_cache` Supabase tables when `DATA_MODE=supabase` (`src/lib/cache.ts`'s `SharedCache`, wired into `src/lib/providers/product/index.ts` and `src/lib/providers/offer/index.ts`); local mode still uses the in-memory `TtlCache`. The nearby-stores cache has no Supabase table and stays in-memory in both modes (per-instance only). Only verified against a mocked Supabase client in `tests/unit/cache.test.ts` - not yet exercised against a real Supabase project.
 - The in-app Google map uses classic `google.maps.Marker`; switch to Advanced Markers with a Map ID if Google deprecates it in your project.
 - Basket optimisation re-runs a compare per basket line, so with SerpApi it costs one shopping search per line (cached 30 min).
 - The rule-based agent understands only the listed request patterns; anything else gets a hint of what it can do.
@@ -56,7 +56,7 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 ## Next recommended improvements
 
 1. Verify the 13 halls against the official Warwick pages and populate `accommodations.json` (biggest quality win: unlocks bedding/cookware/appliance rules).
-2. Persist provider caches to the Supabase cache tables so all serverless instances share them.
+2. ~~Persist provider caches to the Supabase cache tables so all serverless instances share them.~~ Done: product search and offers caches now persist to `product_search_cache` / `offers_cache` in Supabase mode; only verified against a mocked client (no live Supabase project in this environment) - re-run `pnpm test:integration` against a real project's `rls.test.ts`-style setup, or exercise `/api/products/search` and `/api/offers` on two warm Vercel instances, to confirm cross-instance sharing end-to-end.
 3. Add the parent role UI (share checklist/budget; contribution pot).
 4. Price-drop and voucher-expiry alerts (needs a cron + email/push).
 5. ~~Retailer feed adapters (Awin product feeds) to replace the shopping-search aggregator for stock-accurate data.~~ Done: `AwinFeedProductProvider` (`PRODUCT_PROVIDER=awin-feed`). Built and tested against mocked HTTP only — no real Awin datafeed account was available to verify the feed's actual column set or the download URL's exact query-parameter names against current Awin behaviour. Coverage is also inherently partial: it only searches the merchant feeds whose `AWIN_FEED_IDS` are configured, not every retailer the way the SerpApi aggregator does.
