@@ -1,6 +1,6 @@
 import "server-only";
 import { env } from "@/lib/env";
-import { hashKey, namedCache, TTL } from "@/lib/cache";
+import { hashKey, SharedCache, TTL } from "@/lib/cache";
 import type { ProductSearchInput, ProductSearchResult } from "@/lib/types";
 import { MockProductProvider } from "./mock";
 import { SerpApiProductProvider } from "./serpapi";
@@ -33,25 +33,31 @@ export async function searchProducts(input: ProductSearchInput, opts: { refresh?
     // Production must never present mock prices as live.
     throw new ProviderUnavailableError("Live price search isn't set up yet. Ask Nigel to add a product provider key.");
   }
-  const cache = namedCache<ProductSearchResult[]>("product-search");
-  const key = hashKey({
+  const cache = new SharedCache<ProductSearchResult[]>("product-search", "product_search_cache");
+  const persist = env.dataMode === "supabase";
+  // `match` doubles as the Supabase lookup filter and upsert conflict target,
+  // so its keys must be exactly product_search_cache's unique columns.
+  const match = {
     provider: provider.name,
-    q: input.query.trim().toLowerCase(),
-    loc: input.location?.postcode ?? input.location?.label ?? "uk",
-    max: input.maxPrice ?? null,
-    req: input.requiredAttributes ?? [],
-    exc: input.excludedAttributes ?? [],
-    ret: input.retailerPreference ?? [],
-    online: input.onlineOnly ?? false,
-    limit: input.limit ?? null,
-  });
+    location_key: input.location?.postcode ?? input.location?.label ?? "uk",
+    query_hash: hashKey({
+      q: input.query.trim().toLowerCase(),
+      max: input.maxPrice ?? null,
+      req: input.requiredAttributes ?? [],
+      exc: input.excludedAttributes ?? [],
+      ret: input.retailerPreference ?? [],
+      online: input.onlineOnly ?? false,
+      limit: input.limit ?? null,
+    }),
+  };
+  const memoryKey = hashKey(match);
   if (!opts.refresh) {
-    const hit = cache.get(key);
+    const hit = await cache.get({ persist, match, memoryKey });
     if (hit) return { results: hit.value, provider: provider.name, checkedAt: new Date(hit.storedAt).toISOString(), fromCache: true, mock };
   }
   try {
     const results = await provider.search(input);
-    cache.set(key, results, TTL.productSearch);
+    await cache.set({ persist, match, memoryKey, value: results, ttlMs: TTL.productSearch });
     return { results, provider: provider.name, checkedAt: new Date().toISOString(), fromCache: false, mock };
   } catch (err) {
     throw err instanceof ProviderUnavailableError ? err : new ProviderUnavailableError();
