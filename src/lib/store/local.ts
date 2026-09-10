@@ -8,13 +8,18 @@ import type {
   ChecklistItem,
   ChecklistStatus,
   ChecklistView,
+  Contribution,
   Profile,
   PriceWatch,
   ProductSearchResult,
   Purchase,
+  SharedAccess,
+  SharedAccessView,
+  ShareInvite,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
+import { generateShareCode } from "@/lib/sharing/code";
 
 export const LOCAL_DEMO_USER_ID = "local-demo-user";
 
@@ -28,9 +33,25 @@ interface LocalState {
   basket: BasketItem[];
   purchases: Purchase[];
   priceWatches: PriceWatch[];
+  shares: SharedAccess[];
+  invites: ShareInvite[];
+  contributions: Contribution[];
 }
 
-const EMPTY: LocalState = { version: 1, profiles: {}, checklistItems: [], userChecklist: [], accommodations: [], budgets: [], basket: [], purchases: [], priceWatches: [] };
+const EMPTY: LocalState = {
+  version: 1,
+  profiles: {},
+  checklistItems: [],
+  userChecklist: [],
+  accommodations: [],
+  budgets: [],
+  basket: [],
+  purchases: [],
+  priceWatches: [],
+  shares: [],
+  invites: [],
+  contributions: [],
+};
 
 /**
  * File-backed store for development and demos. Persists to <dir>/store.json.
@@ -209,6 +230,83 @@ export class LocalStore implements DataStore, AdminStore {
     }
     this.persist();
     return { ...watch };
+  }
+
+  // ---- Parent sharing ----
+  // Local mode only ever has one real signed-in identity (LOCAL_DEMO_USER_ID), so
+  // redeeming an invite here necessarily makes the owner and viewer the same
+  // person - a self-preview of what a parent would see, not real multi-user
+  // isolation. Unlike SupabaseStore (which routes through the redeem_share_invite
+  // RPC and rejects self-redeem), this store deliberately allows it so the flow
+  // is demoable without a second account. See HANDOFF.md.
+  async listShares(ownerId: string) {
+    return this.state.shares.filter((s) => s.ownerId === ownerId);
+  }
+  async listSharedWithMe(viewerId: string) {
+    return this.state.shares
+      .filter((s) => s.viewerId === viewerId)
+      .map((s): SharedAccessView => {
+        const owner = this.state.profiles[s.ownerId];
+        return { ...s, ownerFirstName: owner?.firstName ?? "", ownerAccommodationSlug: owner?.accommodationSlug ?? null };
+      });
+  }
+  async revokeShare(ownerId: string, viewerId: string) {
+    this.state.shares = this.state.shares.filter((s) => !(s.ownerId === ownerId && s.viewerId === viewerId));
+    this.persist();
+  }
+  async createInvite(ownerId: string, opts: { canViewChecklist: boolean; canViewBudget: boolean; expiresInHours: number }) {
+    const invite: ShareInvite = {
+      id: randomUUID(),
+      ownerId,
+      code: generateShareCode(),
+      canViewChecklist: opts.canViewChecklist,
+      canViewBudget: opts.canViewBudget,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + opts.expiresInHours * 3_600_000).toISOString(),
+      redeemedAt: null,
+      redeemedBy: null,
+    };
+    this.state.invites.push(invite);
+    this.persist();
+    return invite;
+  }
+  async listInvites(ownerId: string) {
+    return this.state.invites.filter((i) => i.ownerId === ownerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+  async revokeInvite(ownerId: string, inviteId: string) {
+    this.state.invites = this.state.invites.filter((i) => !(i.ownerId === ownerId && i.id === inviteId));
+    this.persist();
+  }
+  async redeemInvite(viewerId: string, code: string) {
+    const invite = this.state.invites.find((i) => i.code === code);
+    if (!invite) throw new Error("This invite link is invalid or has expired.");
+    if (invite.redeemedAt) throw new Error("This invite link has already been used.");
+    if (Date.parse(invite.expiresAt) < Date.now()) throw new Error("This invite link is invalid or has expired.");
+    invite.redeemedAt = new Date().toISOString();
+    invite.redeemedBy = viewerId;
+    const existing = this.state.shares.find((s) => s.ownerId === invite.ownerId && s.viewerId === viewerId);
+    let share: SharedAccess;
+    if (existing) {
+      existing.canViewChecklist = invite.canViewChecklist;
+      existing.canViewBudget = invite.canViewBudget;
+      share = existing;
+    } else {
+      share = { id: randomUUID(), ownerId: invite.ownerId, viewerId, role: "parent", canViewChecklist: invite.canViewChecklist, canViewBudget: invite.canViewBudget, createdAt: new Date().toISOString() };
+      this.state.shares.push(share);
+    }
+    this.persist();
+    return { ...share };
+  }
+
+  // ---- Contributions ("the pot") ----
+  async listContributions(ownerId: string) {
+    return this.state.contributions.filter((c) => c.ownerId === ownerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+  async addContribution(ownerId: string, contributorId: string, contributorName: string, input: { amount: number; note: string; checklistItemId: string | null }) {
+    const c: Contribution = { id: randomUUID(), ownerId, contributorId, contributorName, checklistItemId: input.checklistItemId, amount: input.amount, note: input.note, createdAt: new Date().toISOString() };
+    this.state.contributions.push(c);
+    this.persist();
+    return c;
   }
 
   // ---- Admin / seed ----

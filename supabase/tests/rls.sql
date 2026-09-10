@@ -1,11 +1,12 @@
 -- pgTAP RLS isolation tests. Run with: supabase test db
 begin;
-select plan(8);
+select plan(15);
 
--- Two fake users
+-- Three fake users: an owner, an unrelated stranger, and a parent who will redeem a share invite
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000001', 'arielle@example.com'),
-  ('00000000-0000-0000-0000-000000000002', 'someone@example.com')
+  ('00000000-0000-0000-0000-000000000002', 'someone@example.com'),
+  ('00000000-0000-0000-0000-000000000003', 'parent@example.com')
 on conflict do nothing;
 
 insert into public.checklist_items (id, source_key, category, item) values
@@ -36,6 +37,35 @@ select throws_ok(
   null,
   'other user cannot write into owner budgets'
 );
+
+-- Parent sharing: back to user 1 (owner), who creates a share invite
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+insert into public.share_invites (owner_id, code, expires_at) values ('00000000-0000-0000-0000-000000000001', 'TESTCODE1', now() + interval '1 day');
+insert into public.share_invites (owner_id, code, expires_at) values ('00000000-0000-0000-0000-000000000001', 'TESTCODE2', now() + interval '1 day');
+
+select throws_ok(
+  $$ select public.redeem_share_invite('TESTCODE1') $$,
+  'P0001',
+  'You cannot redeem your own invite link.',
+  'owner cannot redeem their own invite'
+);
+
+-- The parent (user 3) redeems it
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
+select lives_ok($$ select public.redeem_share_invite('TESTCODE1') $$, 'parent redeems a valid invite');
+select is((select count(*) from public.shared_access where owner_id = '00000000-0000-0000-0000-000000000001' and viewer_id = '00000000-0000-0000-0000-000000000003'), 1::bigint, 'redeeming created a shared_access row');
+select is((select count(*) from public.user_checklist), 1::bigint, 'shared parent can read owner checklist');
+select is((select count(*) from public.budgets), 1::bigint, 'shared parent can read owner budget');
+select throws_ok(
+  $$ select public.redeem_share_invite('TESTCODE1') $$,
+  'P0001',
+  'This invite link is invalid or has expired.',
+  'a redeemed code cannot be redeemed again'
+);
+
+-- The unrelated stranger (user 2) still sees nothing, even with an invite outstanding
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select is((select count(*) from public.user_checklist), 0::bigint, 'unrelated user still cannot read checklist after sharing with someone else');
 
 select * from finish();
 rollback;

@@ -6,14 +6,18 @@ import type {
   ChecklistItem,
   ChecklistStatus,
   ChecklistView,
+  Contribution,
   Profile,
   PriceWatch,
   ProductSearchResult,
   Purchase,
+  SharedAccess,
+  ShareInvite,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
 import { defaultStatusFromTiming } from "./local";
+import { generateShareCode } from "@/lib/sharing/code";
 
 type Row = Record<string, unknown>;
 
@@ -68,6 +72,15 @@ function toPurchase(r: Row): Purchase {
 }
 function toPriceWatch(r: Row): PriceWatch {
   return { id: s(r.id), userId: s(r.user_id), itemKey: s(r.item_key), label: s(r.label), retailer: s(r.retailer), lastPrice: Number(r.last_price), currency: s(r.currency) || "GBP", productUrl: r.product_url == null ? null : s(r.product_url), lastCheckedAt: s(r.last_checked_at) };
+}
+function toSharedAccess(r: Row): SharedAccess {
+  return { id: s(r.id), ownerId: s(r.owner_id), viewerId: s(r.viewer_id), role: "parent", canViewChecklist: Boolean(r.can_view_checklist), canViewBudget: Boolean(r.can_view_budget), createdAt: s(r.created_at) };
+}
+function toShareInvite(r: Row): ShareInvite {
+  return { id: s(r.id), ownerId: s(r.owner_id), code: s(r.code), canViewChecklist: Boolean(r.can_view_checklist), canViewBudget: Boolean(r.can_view_budget), createdAt: s(r.created_at), expiresAt: s(r.expires_at), redeemedAt: r.redeemed_at == null ? null : s(r.redeemed_at), redeemedBy: r.redeemed_by == null ? null : s(r.redeemed_by) };
+}
+function toContribution(r: Row): Contribution {
+  return { id: s(r.id), ownerId: s(r.owner_id), contributorId: s(r.contributor_id), contributorName: s(r.contributor_name), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), amount: Number(r.amount), note: s(r.note), createdAt: s(r.created_at) };
 }
 
 function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
@@ -201,6 +214,62 @@ export class SupabaseStore implements DataStore, AdminStore {
       .select("*")
       .single();
     return toPriceWatch(must(res, "price_watches upsert") as Row);
+  }
+
+  // ---- Parent sharing ----
+  async listShares(ownerId: string) {
+    const res = await this.db.from("shared_access").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false });
+    return (must(res, "shared_access") as Row[]).map(toSharedAccess);
+  }
+  async listSharedWithMe(viewerId: string) {
+    const res = await this.db.from("shared_access").select("*").eq("viewer_id", viewerId).order("created_at", { ascending: false });
+    const shares = (must(res, "shared_access") as Row[]).map(toSharedAccess);
+    const owners = await Promise.all(shares.map((sh) => this.db.from("profiles").select("first_name, accommodation_slug").eq("id", sh.ownerId).maybeSingle()));
+    return shares.map((sh, i) => {
+      const p = owners[i].data as Row | null;
+      return { ...sh, ownerFirstName: p ? s(p.first_name) : "", ownerAccommodationSlug: p?.accommodation_slug == null ? null : s(p.accommodation_slug) };
+    });
+  }
+  async revokeShare(ownerId: string, viewerId: string) {
+    const { error } = await this.db.from("shared_access").delete().eq("owner_id", ownerId).eq("viewer_id", viewerId);
+    if (error) throw new Error(`shared_access delete: ${error.message}`);
+  }
+  async createInvite(ownerId: string, opts: { canViewChecklist: boolean; canViewBudget: boolean; expiresInHours: number }) {
+    const expiresAt = new Date(Date.now() + opts.expiresInHours * 3_600_000).toISOString();
+    const res = await this.db.from("share_invites").insert({ owner_id: ownerId, code: generateShareCode(), can_view_checklist: opts.canViewChecklist, can_view_budget: opts.canViewBudget, expires_at: expiresAt }).select("*").single();
+    return toShareInvite(must(res, "share_invites insert") as Row);
+  }
+  async listInvites(ownerId: string) {
+    const res = await this.db.from("share_invites").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false });
+    return (must(res, "share_invites") as Row[]).map(toShareInvite);
+  }
+  async revokeInvite(ownerId: string, inviteId: string) {
+    const { error } = await this.db.from("share_invites").delete().eq("owner_id", ownerId).eq("id", inviteId);
+    if (error) throw new Error(`share_invites delete: ${error.message}`);
+  }
+  /** Routes through the redeem_share_invite() security-definer function so a viewer
+   * can write a shared_access row for someone else's owner_id - gated entirely by a
+   * valid, unexpired, unredeemed code - without RLS needing to allow that generally. */
+  async redeemInvite(_viewerId: string, code: string) {
+    const { data, error } = await this.db.rpc("redeem_share_invite", { p_code: code });
+    if (error) throw new Error(error.message || "This invite link is invalid or has expired.");
+    const row = (Array.isArray(data) ? data[0] : data) as Row | null;
+    if (!row) throw new Error("This invite link is invalid or has expired.");
+    return toSharedAccess(row);
+  }
+
+  // ---- Contributions ("the pot") ----
+  async listContributions(ownerId: string) {
+    const res = await this.db.from("contributions").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false });
+    return (must(res, "contributions") as Row[]).map(toContribution);
+  }
+  async addContribution(ownerId: string, contributorId: string, contributorName: string, input: { amount: number; note: string; checklistItemId: string | null }) {
+    const res = await this.db
+      .from("contributions")
+      .insert({ owner_id: ownerId, contributor_id: contributorId, contributor_name: contributorName, checklist_item_id: input.checklistItemId, amount: input.amount, note: input.note })
+      .select("*")
+      .single();
+    return toContribution(must(res, "contributions insert") as Row);
   }
 
   // ---- Admin (secret key client) ----

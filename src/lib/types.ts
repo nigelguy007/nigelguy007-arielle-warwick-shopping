@@ -281,3 +281,49 @@ export const WARWICK_CAMPUS: LocationContext = {
   coords: { lat: 52.3793, lng: -1.5615 },
   postcode: "CV4 7AL",
 };
+
+// ---------- Parent sharing ----------
+
+/** Grants a "parent" a read-only view of one owner's checklist and/or budget. */
+export interface SharedAccess {
+  id: string;
+  ownerId: string;
+  viewerId: string;
+  role: "parent";
+  canViewChecklist: boolean;
+  canViewBudget: boolean;
+  createdAt: string;
+}
+
+/** A share from the viewer's side, with enough of the owner's profile to label it. */
+export interface SharedAccessView extends SharedAccess {
+  ownerFirstName: string;
+  ownerAccommodationSlug: string | null;
+}
+
+/** A one-time link an owner generates for a parent to redeem into a SharedAccess row. */
+export interface ShareInvite {
+  id: string;
+  ownerId: string;
+  code: string;
+  canViewChecklist: boolean;
+  canViewBudget: boolean;
+  createdAt: string;
+  expiresAt: string;
+  redeemedAt: string | null;
+  redeemedBy: string | null;
+}
+
+/** One payment or pledge a parent logs toward the move-in "pot". Never subtracted
+ * from the owner's own budget maths automatically - it is tracked and shown
+ * alongside it, since only the owner's own purchases represent real spend. */
+export interface Contribution {
+  id: string;
+  ownerId: string;
+  contributorId: string;
+  contributorName: string;
+  checklistItemId: string | null;
+  amount: number;
+  note: string;
+  createdAt: string;
+}
