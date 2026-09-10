@@ -42,6 +42,13 @@
   --danger-badge: oklch(58% 0.19 25);
   --essential-bg: oklch(83% 0.1 85 / 0.35);
   --essential-fg: oklch(45% 0.1 65);
+  /* Not in the handoff (it has no warning/mock-data concepts) - added to
+     keep the app's existing warning and "mock data" badges working,
+     constructed in the same family as essential/danger above. */
+  --warn: oklch(58% 0.14 70);
+  --warn-soft: oklch(90% 0.06 80);
+  --mock: oklch(48% 0.05 280);
+  --mock-soft: oklch(90% 0.02 280);
 
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -78,6 +85,11 @@
 
     --toast-bg: rgba(235, 238, 245, 0.9);
     --toast-fg: #10141d;
+
+    --warn: oklch(78% 0.13 75);
+    --warn-soft: oklch(30% 0.06 75);
+    --mock: oklch(75% 0.03 280);
+    --mock-soft: oklch(28% 0.02 280);
   }
 }
 :root[data-theme="dark"] {
@@ -107,6 +119,11 @@
 
   --toast-bg: rgba(235, 238, 245, 0.9);
   --toast-fg: #10141d;
+
+  --warn: oklch(78% 0.13 75);
+  --warn-soft: oklch(30% 0.06 75);
+  --mock: oklch(75% 0.03 280);
+  --mock-soft: oklch(28% 0.02 280);
 }
 
 @theme inline {
@@ -126,6 +143,10 @@
   --color-danger: var(--danger);
   --color-essential-bg: var(--essential-bg);
   --color-essential-fg: var(--essential-fg);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-mock: var(--mock);
+  --color-mock-soft: var(--mock-soft);
   --font-sans: -apple-system, "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-display-raw), var(--font-sans);
   --radius-card: 1.125rem;
@@ -179,8 +200,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .glass > * { position: relative; }
 
-/* Frosted card: product cards, list sections, sheets. */
-.glass-card {
+/* Frosted card: product cards, list sections, sheets. `.card` is an alias
+   kept for the many existing components already using that class name. */
+.glass-card, .card {
   position: relative;
   background: var(--card);
   backdrop-filter: blur(20px) saturate(180%);

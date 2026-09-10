@@ -4,6 +4,8 @@ import { summarise } from "@/lib/checklist/status";
 import { calculateBasket, summariseBudget } from "@/lib/budget/math";
 import { buyNext, suppliedItems } from "@/lib/recommendations/buy-next";
 import { searchOffers } from "@/lib/providers/offer";
+import { isNearingExpiry } from "@/lib/offers/expiry";
+import { env } from "@/lib/env";
 import type { AccommodationProfile, ChecklistView, OfferResult } from "@/lib/types";
 
 export async function loadDashboard(userId: string) {
@@ -26,6 +28,10 @@ export async function loadDashboard(userId: string) {
   const budgetSummary = summariseBudget(budget, purchases, basketTotals);
   const summary = summarise(items);
   const next = buyNext(items, accommodation, { budgetRemaining: budgetSummary.remaining, limit: 3 });
+  // Real, cheap-to-compute signal only - no live price re-check on every Home
+  // load (that's what the /api/alerts/run cron sweep is for). Price-drop
+  // counts intentionally aren't shown here for the same reason.
+  const voucherExpiringCount = offers.filter((o) => isNearingExpiry(o, env.voucherExpiryAlertDays)).length;
   return {
     profile,
     accommodation,
@@ -38,6 +44,7 @@ export async function loadDashboard(userId: string) {
     purchases,
     buyNext: next,
     supplied: suppliedItems(items, accommodation),
+    voucherExpiringCount,
   };
 }
 

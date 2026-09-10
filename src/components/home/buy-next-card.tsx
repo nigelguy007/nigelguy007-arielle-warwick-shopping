@@ -1,20 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/client/api";
 import { locationParams, readStoredLocation } from "@/lib/client/location";
-import { ProductCard } from "@/components/shop/product-card";
-import { Badge, StampBadge } from "@/components/ui/badge";
 import { gbp } from "@/lib/utils";
 import type { CompareResult } from "@/lib/services/compare";
 import type { BuyNextCandidate } from "@/lib/recommendations/buy-next";
 import type { ScoredProduct } from "@/lib/ranking/value-score";
-import { useRouter } from "next/navigation";
 
+/** Compact 168px horizontal-scroll product card, exact treatment from the
+ * design handoff's Home "Buy next" row. Photo is an intentional placeholder
+ * pending a live retailer image feed - see .photo-placeholder in globals.css. */
 export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
   const router = useRouter();
   const [pick, setPick] = useState<ScoredProduct | null | undefined>(undefined);
-  const [meta, setMeta] = useState<{ mock: boolean; warning: string | null; error: string | null } | null>(null);
   const [adding, setAdding] = useState(false);
   const item = candidate.item;
 
@@ -25,7 +24,6 @@ export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
       .then((r) => {
         if (cancelled) return;
         setPick(r.recommendations.bestValue ?? r.recommendations.cheapest ?? null);
-        setMeta({ mock: r.mock, warning: r.warning, error: r.error });
       })
       .catch(() => {
         if (!cancelled) setPick(null);
@@ -35,38 +33,56 @@ export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
     };
   }, [item.id]);
 
-  const add = async () => {
+  const buy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!pick) return;
     setAdding(true);
     try {
-      await api("/api/basket", { method: "POST", body: JSON.stringify({ product: pick.product, quantity: item.qty, checklistItemId: item.id }) });
+      await api(`/api/checklist/${item.id}`, { method: "PATCH", body: JSON.stringify({ status: "bought", paidPrice: pick.effectivePrice * item.qty, retailer: pick.product.retailer }) });
       router.refresh();
     } finally {
       setAdding(false);
     }
   };
-  const bought = async () => {
-    await api(`/api/checklist/${item.id}`, { method: "PATCH", body: JSON.stringify({ status: "bought", ...(pick ? { paidPrice: pick.effectivePrice * item.qty, retailer: pick.product.retailer } : {}) }) });
-    router.refresh();
-  };
+
+  if (pick === undefined) {
+    return <div className="glass-card h-[190px] w-[168px] shrink-0 animate-pulse" />;
+  }
+  if (pick === null) {
+    return (
+      <button
+        type="button"
+        onClick={() => router.push(`/shop?q=${encodeURIComponent(item.item)}&itemId=${item.id}`)}
+        className="glass-card flex h-[190px] w-[168px] shrink-0 flex-col items-start justify-end p-3 text-left"
+      >
+        <p className="text-[13px] leading-[1.25] font-bold">{item.item}</p>
+        <p className="mt-1 text-[11px] text-accent-ink">Compare prices</p>
+      </button>
+    );
+  }
 
   return (
-    <div className="space-y-2">
-      <Link href={`/checklist/${item.id}`} className="flex items-center justify-between px-1">
-        <div>
-          <p className="font-semibold">{item.item}{item.qty > 1 ? ` × ${item.qty}` : ""}</p>
-          <p className="text-xs text-muted">{candidate.reason}{candidate.estimatedCost !== null ? ` · est. ${gbp(candidate.estimatedCost)}` : ""}</p>
+    <button type="button" onClick={() => router.push(`/checklist/${item.id}`)} className="glass-card w-[168px] shrink-0 overflow-hidden text-left focus-visible:outline-2 focus-visible:outline-accent">
+      <div className="photo-placeholder h-24">
+        <span className="text-[9px]">photo</span>
+      </div>
+      <div className="flex flex-col gap-1 p-3">
+        <div className="h-[33px] overflow-hidden text-[13px] leading-[1.25] font-bold">{item.item}</div>
+        <div className="text-[11px] text-foreground-secondary">{pick.product.retailer}</div>
+        <div className="mt-1 flex items-center justify-between">
+          <span className="tabular text-[15px] font-extrabold">{gbp(pick.effectivePrice)}</span>
+          <span
+            onClick={buy}
+            role="button"
+            tabIndex={0}
+            aria-label={`Mark ${item.item} bought`}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buy(e as unknown as React.MouseEvent); } }}
+            className="rounded-xl bg-accent px-3 py-[5px] text-[11px] font-bold text-on-accent"
+          >
+            {adding ? "…" : "Buy"}
+          </span>
         </div>
-        {item.priority === "essential" ? <StampBadge>Essential</StampBadge> : <Badge tone="neutral">{item.priority}</Badge>}
-      </Link>
-      {pick === undefined ? <div className="card h-28 animate-pulse bg-black/5" /> : null}
-      {pick ? <ProductCard pick={pick} label={meta?.mock ? undefined : "Best value"} compact onAdd={add} adding={adding} onBought={bought} onNearby={() => router.push(`/map?retailer=${encodeURIComponent(pick.product.retailer)}&q=${encodeURIComponent(item.item)}`)} /> : null}
-      {pick === null ? (
-        <div className="card p-4 text-sm text-muted">
-          {meta?.error ?? meta?.warning ?? "No product suggestion yet."}{" "}
-          <Link href={`/shop?q=${encodeURIComponent(item.item)}&itemId=${item.id}`} className="font-semibold text-accent-ink">Compare</Link>
-        </div>
-      ) : null}
-    </div>
+      </div>
+    </button>
   );
 }

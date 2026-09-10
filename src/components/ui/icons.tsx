@@ -5,10 +5,14 @@
  */
 import type { SVGProps } from "react";
 
-function Line({ d, size = 20, sw = 1.8, ...props }: { d: string; size?: number; sw?: number } & SVGProps<SVGSVGElement>) {
+function Line({ d, size = 20, sw = 1.8, hydrationSensitive, ...props }: { d: string; size?: number; sw?: number; hydrationSensitive?: boolean } & SVGProps<SVGSVGElement>) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-      <path d={d} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+      {/* suppressHydrationWarning: only set true for icons whose path is
+          allowed to legitimately differ between server and client render
+          (e.g. the dark-mode toggle, which depends on system preference
+          that SSR can't know) - see dark-toggle-button.tsx. */}
+      <path d={d} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" suppressHydrationWarning={hydrationSensitive} />
     </svg>
   );
 }
@@ -52,8 +56,8 @@ export const MISC_ICON_PATH = {
   moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z",
 } as const;
 
-export function Icon({ path, size = 20, sw = 1.8, className }: { path: string; size?: number; sw?: number; className?: string }) {
-  return <Line d={path} size={size} sw={sw} className={className} />;
+export function Icon({ path, size = 20, sw = 1.8, className, hydrationSensitive }: { path: string; size?: number; sw?: number; className?: string; hydrationSensitive?: boolean }) {
+  return <Line d={path} size={size} sw={sw} className={className} hydrationSensitive={hydrationSensitive} />;
 }
 
 export function CheckIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

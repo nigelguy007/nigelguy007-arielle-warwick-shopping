@@ -17,12 +17,23 @@ function currentIsDark(): boolean {
 }
 
 /** Explicit light/dark override (Home header icon, Me screen row), falling
- * back to system preference until the user picks one. */
+ * back to system preference until the user picks one.
+ *
+ * `dark` is forced false until the component has mounted, matching what SSR
+ * always renders (it can't know the client's system preference). This is
+ * the standard hydration-safe pattern for a client-only value (see
+ * next-themes) - the page's actual colours already switch instantly via the
+ * plain CSS `prefers-color-scheme` query regardless of this flag, so the
+ * one-paint delay only affects which icon/label a toggle shows, not colour. */
 export function useTheme() {
   const [dark, setDark] = useState(currentIsDark);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setDark(currentIsDark());
+    // The standard "has mounted" flag: unconditional, runs once, the
+    // documented way to defer a client-only value past hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => { if (!localStorage.getItem(KEY)) setDark(currentIsDark()); };
     mq.addEventListener("change", onChange);
@@ -42,5 +53,5 @@ export function useTheme() {
     });
   }, []);
 
-  return { dark, toggleDark };
+  return { dark: mounted ? dark : false, toggleDark };
 }
