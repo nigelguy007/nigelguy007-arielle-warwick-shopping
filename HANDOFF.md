@@ -25,6 +25,7 @@
 | Student discounts | public deep links only (Student Beans, UNiDAYS) | none – would require an approved partner API | `STUDENT_BEANS_PARTNER_KEY` / `UNIDAYS_PARTNER_KEY` are reserved, unused |
 | AI agent | rule-based fallback | Vercel AI SDK via AI Gateway | `AI_GATEWAY_API_KEY`, `AI_MODEL` |
 | Data + auth | `LocalStore` demo user, no sign-in | Supabase Postgres + magic link | `DATA_MODE=supabase` + Supabase vars |
+| Alert emails | `ConsoleNotifier` (structured server log) | `ResendEmailNotifier` (Resend HTTP API) | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `ALERT_EMAIL_FROM` |
 
 Mock results are badged "Mock data · not live" and are refused in production unless `ALLOW_MOCK_IN_PRODUCTION=true`.
 
@@ -52,12 +53,29 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 - The rule-based agent understands only the listed request patterns; anything else gets a hint of what it can do.
 - No parent-sharing UI yet; the `shared_access` table and policies exist.
 - The Playwright suite runs on Chromium with an iPhone viewport (WebKit is not installed in this environment).
+- Price-drop / voucher-expiry alerts (`/api/alerts/run`) have no real cron runner or email provider wired up in this environment - see "Price-drop and voucher-expiry alerts" below for exactly what is real vs. what needs a key.
+
+## Price-drop and voucher-expiry alerts
+
+Recommendation #4 below is implemented, not vaporware, but it has never actually fired on a schedule because this dev environment has neither a cron runner nor an email provider account.
+
+**What's real and tested:**
+- Detection logic (`src/lib/alerts/detect.ts`, `src/lib/alerts/run.ts`): re-searches each basket line's exact listing (matched by provider id, or by same retailer + exact title as a fallback - never a guessed match), compares the fresh price against the last price recorded for it, and only calls it a "drop" when there *was* a prior recorded price and the saving clears `PRICE_DROP_ALERT_MIN` (default £0.50). The very first sighting of an item only seeds a baseline; it is never reported as a drop. Voucher-expiry reuses `src/lib/offers/expiry.ts` (`isNearingExpiry`, `daysUntilExpiry`) and only fires for currently-active offers ending within `VOUCHER_EXPIRY_ALERT_DAYS` (default 3), labelling unverified offers as "Potential offer" rather than confirmed. Unit tests: `tests/unit/alerts-detect.test.ts`, `tests/unit/alerts-run.test.ts`.
+- The "last seen price" store: a new `PriceWatch` type + `price_watches` table (`supabase/migrations/0002_price_watches.sql`, owner-only RLS, isolation asserted in `supabase/tests/rls.sql`), plus `listPriceWatches` / `getPriceWatch` / `recordPriceObservation` on both `LocalStore` and `SupabaseStore`, and `listProfileUserIds` on `AdminStore` so the job can sweep every user. Tested in `tests/unit/local-store.test.ts`.
+- The API route (`src/app/api/alerts/run/route.ts`): a real endpoint, `pnpm dev` + `curl -X POST -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/alerts/run` runs a real sweep against local-mode data today. Integration test: `tests/integration/alerts-route.test.ts` (auth gating + a real price-drop/expiry detection through the actual route).
+- The notifier (`src/lib/notify/`): `ConsoleNotifier` (structured server log, always works, used automatically today) and `ResendEmailNotifier` (plain HTTP call to Resend, no SDK dependency) behind `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` + `ALERT_EMAIL_FROM` - falls back to console exactly like every other mock-fallback provider in this codebase when the key is missing. Tested with mocked HTTP in `tests/integration/notify-provider.test.ts`.
+
+**What needs a real key / runner to activate:**
+1. **A cron runner.** `vercel.json` now has a `crons` entry (`0 8 * * *`, daily) pointing at `/api/alerts/run` - this is genuinely wired but has never fired, because Vercel Cron only runs once the project is deployed on Vercel, and this dev environment cannot deploy or simulate it. Once deployed, set `CRON_SECRET` in the Vercel project's env vars (Vercel signs cron requests with `Authorization: Bearer $CRON_SECRET` automatically once that var is set).
+2. **`RESEND_API_KEY` + `ALERT_EMAIL_FROM`** (a domain verified with Resend) to actually email Arielle instead of just logging. Until then every alert still fires correctly and is visible in server logs - nothing is silently dropped.
+3. **A resolvable user email.** `resolveUserEmail` (`src/lib/alerts/resolve-email.ts`) looks the user up via Supabase's admin auth API, so it only works once `DATA_MODE=supabase` and a real signed-up user exists; local demo mode has no real email and always falls back to the console notifier for that user (this is correct, not a bug - there's nothing to email).
+4. **Repeat-alert de-duplication is a known gap.** A voucher that's still 2 days from expiring will be reported again on every single cron run until it expires (each report is individually accurate - it's not a fabricated repeat - but a daily cron means a daily repeat email). If this goes into real production, add a small "already notified" log (same shape as the price-watch table) before turning on real email delivery, so a user isn't emailed the same expiring voucher every day.
 
 ## Next recommended improvements
 
 1. Verify the 13 halls against the official Warwick pages and populate `accommodations.json` (biggest quality win: unlocks bedding/cookware/appliance rules).
 2. Persist provider caches to the Supabase cache tables so all serverless instances share them.
 3. Add the parent role UI (share checklist/budget; contribution pot).
-4. Price-drop and voucher-expiry alerts (needs a cron + email/push).
+4. ~~Price-drop and voucher-expiry alerts~~ - done (see above); still needs `CRON_SECRET` + a live Vercel Cron deploy + `RESEND_API_KEY` to fully activate, and a de-dup log before real email delivery.
 5. Retailer feed adapters (Awin product feeds) to replace the shopping-search aggregator for stock-accurate data.
 6. Moving-day packing mode and receipt capture (nice-to-haves from the spec).

@@ -6,6 +6,7 @@ import type {
   ChecklistStatus,
   ChecklistView,
   Profile,
+  PriceWatch,
   ProductSearchResult,
   Purchase,
   UserChecklistEntry,
@@ -62,6 +63,15 @@ export interface DataStore {
   // Purchases
   listPurchases(userId: string): Promise<Purchase[]>;
   addPurchase(userId: string, purchase: Omit<Purchase, "id" | "userId" | "purchasedAt"> & { purchasedAt?: string }): Promise<Purchase>;
+
+  // Price watch: the last price we recorded per tracked item, for price-drop alerts.
+  listPriceWatches(userId: string): Promise<PriceWatch[]>;
+  getPriceWatch(userId: string, itemKey: string): Promise<PriceWatch | null>;
+  recordPriceObservation(
+    userId: string,
+    itemKey: string,
+    patch: { label: string; retailer: string; price: number; currency: string; productUrl: string | null },
+  ): Promise<PriceWatch>;
 }
 
 /** Admin/seed operations. Local: same object. Supabase: needs the secret key. */
@@ -69,4 +79,6 @@ export interface AdminStore {
   upsertChecklistItems(rows: ChecklistImportRow[]): Promise<{ inserted: number; updated: number }>;
   upsertAccommodations(rows: AccommodationSeed[]): Promise<number>;
   seedUserStatuses(userId: string, statuses: Array<{ sourceKey: string; status: ChecklistStatus }>, opts?: { overwrite?: boolean }): Promise<number>;
+  /** Every user id known to the app (has a profile row). Used by the alerts cron to sweep all users. */
+  listProfileUserIds(): Promise<string[]>;
 }

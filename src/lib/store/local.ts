@@ -9,6 +9,7 @@ import type {
   ChecklistStatus,
   ChecklistView,
   Profile,
+  PriceWatch,
   ProductSearchResult,
   Purchase,
   UserChecklistEntry,
@@ -26,9 +27,10 @@ interface LocalState {
   budgets: Budget[];
   basket: BasketItem[];
   purchases: Purchase[];
+  priceWatches: PriceWatch[];
 }
 
-const EMPTY: LocalState = { version: 1, profiles: {}, checklistItems: [], userChecklist: [], accommodations: [], budgets: [], basket: [], purchases: [] };
+const EMPTY: LocalState = { version: 1, profiles: {}, checklistItems: [], userChecklist: [], accommodations: [], budgets: [], basket: [], purchases: [], priceWatches: [] };
 
 /**
  * File-backed store for development and demos. Persists to <dir>/store.json.
@@ -174,6 +176,31 @@ export class LocalStore implements DataStore, AdminStore {
     return p;
   }
 
+  // ---- Price watch ----
+  async listPriceWatches(userId: string) {
+    return this.state.priceWatches.filter((w) => w.userId === userId);
+  }
+  async getPriceWatch(userId: string, itemKey: string) {
+    return this.state.priceWatches.find((w) => w.userId === userId && w.itemKey === itemKey) ?? null;
+  }
+  async recordPriceObservation(userId: string, itemKey: string, patch: { label: string; retailer: string; price: number; currency: string; productUrl: string | null }) {
+    const now = new Date().toISOString();
+    let watch = this.state.priceWatches.find((w) => w.userId === userId && w.itemKey === itemKey);
+    if (!watch) {
+      watch = { id: randomUUID(), userId, itemKey, label: patch.label, retailer: patch.retailer, lastPrice: patch.price, currency: patch.currency, productUrl: patch.productUrl, lastCheckedAt: now };
+      this.state.priceWatches.push(watch);
+    } else {
+      watch.label = patch.label;
+      watch.retailer = patch.retailer;
+      watch.lastPrice = patch.price;
+      watch.currency = patch.currency;
+      watch.productUrl = patch.productUrl;
+      watch.lastCheckedAt = now;
+    }
+    this.persist();
+    return { ...watch };
+  }
+
   // ---- Admin / seed ----
   async upsertChecklistItems(rows: ChecklistImportRow[]) {
     let inserted = 0;
@@ -211,6 +238,9 @@ export class LocalStore implements DataStore, AdminStore {
       n++;
     }
     return n;
+  }
+  async listProfileUserIds() {
+    return Object.keys(this.state.profiles);
   }
 }
 

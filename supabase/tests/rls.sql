@@ -1,6 +1,6 @@
 -- pgTAP RLS isolation tests. Run with: supabase test db
 begin;
-select plan(6);
+select plan(8);
 
 -- Two fake users
 insert into auth.users (id, email) values
@@ -18,15 +18,18 @@ set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","
 insert into public.user_checklist (user_id, checklist_item_id, status) values ('00000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'buy');
 insert into public.budgets (user_id, amount) values ('00000000-0000-0000-0000-000000000001', 200);
 insert into public.basket_items (user_id, product_snapshot, quantity) values ('00000000-0000-0000-0000-000000000001', '{"id":"x"}'::jsonb, 1);
+insert into public.price_watches (user_id, item_key, label, retailer, last_price) values ('00000000-0000-0000-0000-000000000001', 'test/duvet', 'Duvet', 'Dunelm', 14);
 
 select is((select count(*) from public.user_checklist), 1::bigint, 'owner sees own checklist row');
 select is((select count(*) from public.budgets), 1::bigint, 'owner sees own budget');
+select is((select count(*) from public.price_watches), 1::bigint, 'owner sees own price watch');
 
 -- Act as user 2: must see nothing of user 1
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
 select is((select count(*) from public.user_checklist), 0::bigint, 'other user cannot read checklist');
 select is((select count(*) from public.budgets), 0::bigint, 'other user cannot read budgets');
 select is((select count(*) from public.basket_items), 0::bigint, 'other user cannot read basket');
+select is((select count(*) from public.price_watches), 0::bigint, 'other user cannot read price watches');
 select throws_ok(
   $$ insert into public.budgets (user_id, amount) values ('00000000-0000-0000-0000-000000000001', 1) $$,
   '42501',
