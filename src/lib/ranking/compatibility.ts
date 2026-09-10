@@ -102,14 +102,18 @@ export function checkProductCompatibility(
 
 export function accommodationWarningFor(item: Pick<ChecklistItem, "item" | "category">, profile: AccommodationProfile | null): string | null {
   const kind = categoryOfItem(item);
-  if (!profile || !profile.verifiedAt) {
+  // No accommodation chosen yet - distinct from "chosen but not officially verified",
+  // which is the normal state for every hall until Warwick's page is scraped/confirmed.
+  if (!profile) {
     if (kind === "bedding") return "Tell me your Warwick accommodation before I recommend bedding.";
     if (kind === "cookware") return "Hob type not confirmed - check your hall kitchen before buying cookware.";
     if (kind === "appliance") return "Check whether Warwick already provides this before buying.";
     return null;
   }
   if (kind === "appliance" && isSuppliedByHall(item, profile)) return "Warwick already provides this.";
-  if (kind === "bedding" && (!profile.bedSize || profile.bedSize === "unknown")) return "Bed size not confirmed.";
-  if (kind === "cookware" && profile.hobType === "induction") return "Induction hob: only induction-compatible pans will be shown.";
+  if (kind === "bedding" && (!profile.verifiedAt || !profile.bedSize || profile.bedSize === "unknown")) return "Bed size not confirmed.";
+  if (kind === "cookware" && (!profile.verifiedAt || !profile.hobType || profile.hobType === "unknown")) return "Hob type not confirmed - check your hall kitchen before buying cookware.";
+  if (kind === "cookware" && profile.verifiedAt && profile.hobType === "induction") return "Induction hob: only induction-compatible pans will be shown.";
+  if (kind === "appliance" && !profile.verifiedAt) return "Check whether Warwick already provides this before buying.";
   return null;
 }
