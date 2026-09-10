@@ -15,7 +15,7 @@
 - Supabase schema + RLS + profile trigger; local file store for development.
 - Health endpoint (`/api/health`) with provider modes and per-provider success rate / latency.
 - Parent sharing: from `/me`, generate an invite link (`/share/[code]`); a parent signs in with the existing magic-link flow and lands on a read-only `/shared/[ownerId]` view (checklist progress + still-needed items, budget, and a "contribution pot" they can log payments/pledges into). Owner controls what's shared (checklist/budget), sees who has access, and can revoke it. See "Parent sharing" below.
-- `pnpm check` (lint, typecheck, 72 unit/integration tests) and 8 Playwright E2E scenarios pass.
+- `pnpm check` (lint, typecheck, 118 unit/integration tests, 8 skipped without credentials) and 8 Playwright E2E scenarios pass.
 
 ## What is mocked
 
