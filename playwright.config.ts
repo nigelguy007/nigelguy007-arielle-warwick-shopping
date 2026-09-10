@@ -29,6 +29,8 @@ export default defineConfig({
     env: {
       DATA_MODE: "local",
       LOCAL_DATA_DIR: ".data/e2e",
+      // Set LOCAL_STORE=cookie to run the same journey against the cookie-backed demo store.
+      LOCAL_STORE: process.env.LOCAL_STORE ?? "file",
       PRODUCT_PROVIDER: "mock",
       MAP_PROVIDER: "mock",
       OFFER_PROVIDER: "mock",

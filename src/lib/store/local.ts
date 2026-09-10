@@ -20,6 +20,7 @@ import type {
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
 import { generateShareCode } from "@/lib/sharing/code";
+import { checklistItemIdFor } from "./base-data";
 
 export const LOCAL_DEMO_USER_ID = "local-demo-user";
 
@@ -319,7 +320,7 @@ export class LocalStore implements DataStore, AdminStore {
         Object.assign(existing, { category: r.category, item: r.item, priority: r.priority, timing: r.timing, defaultQty: r.defaultQty, budgetEstimate: r.budgetEstimate, notes: r.notes });
         updated++;
       } else {
-        this.state.checklistItems.push({ id: randomUUID(), ...r });
+        this.state.checklistItems.push({ id: checklistItemIdFor(r.sourceKey), ...r });
         inserted++;
       }
     }

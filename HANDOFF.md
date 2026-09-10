@@ -57,7 +57,7 @@ Send the Vercel URL. She types her email, taps the link in the email on her phon
 
 ## Known limitations
 
-- Local mode is single-instance and file-backed: fine for development and a demo, not for Vercel (read-only filesystem) or multiple users. This is also why parent sharing is demo-only there (see "Parent sharing" above).
+- Local mode has two storages: a JSON file (development) and, on Vercel, a compressed per-visitor cookie (`LOCAL_STORE=cookie`, automatic when `VERCEL` is set) because serverless functions share no disk. Cookie state is capped at roughly 20 KB, lives in that browser only, and is not a substitute for Supabase mode. This is also why parent sharing is demo-only in local mode (see "Parent sharing" above).
 - Product search and offers caches are shared across serverless instances via the `product_search_cache` / `offers_cache` Supabase tables when `DATA_MODE=supabase` (`src/lib/cache.ts`'s `SharedCache`, wired into `src/lib/providers/product/index.ts` and `src/lib/providers/offer/index.ts`); local mode still uses the in-memory `TtlCache`. The nearby-stores cache has no Supabase table and stays in-memory in both modes (per-instance only). Only verified against a mocked Supabase client in `tests/unit/cache.test.ts` - not yet exercised against a real Supabase project.
 - The in-app Google map uses classic `google.maps.Marker`; switch to Advanced Markers with a Map ID if Google deprecates it in your project.
 - Basket optimisation re-runs a compare per basket line, so with SerpApi it costs one shopping search per line (cached 30 min).

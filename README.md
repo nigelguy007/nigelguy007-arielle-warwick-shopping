@@ -13,7 +13,7 @@ cp .env.example .env.local        # defaults: DATA_MODE=local, all providers moc
 pnpm dev                          # http://localhost:3000
 ```
 
-Local mode seeds `data/warwick_move_in_checklist.csv` and `data/accommodations.json` into `./.data/store.json` on first request, creates a demo profile (Arielle), and skips sign-in. Mock prices, shops and offers are clearly labelled "Mock data · not live" and are refused in production.
+Local mode seeds `data/warwick_move_in_checklist.csv` and `data/accommodations.json` into `./.data/store.json` on first request, creates a demo profile (Arielle), and skips sign-in. On Vercel (or with `LOCAL_STORE=cookie`) the demo keeps each visitor's changes in a compressed cookie instead, since serverless functions share no disk. Mock prices, shops and offers are clearly labelled "Mock data · not live" and are refused in production.
 
 ## Scripts
 
