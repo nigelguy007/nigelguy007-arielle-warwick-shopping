@@ -56,6 +56,8 @@ export function item(overrides: Partial<ChecklistView> = {}): ChecklistView {
     defaultQty: 1,
     budgetEstimate: 10,
     notes: "",
+    custom: false,
+    ownerId: null,
     status: "buy",
     qty: 1,
     customNotes: "",

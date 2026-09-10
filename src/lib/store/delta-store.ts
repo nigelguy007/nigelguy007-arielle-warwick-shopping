@@ -9,11 +9,13 @@ import type {
   Contribution,
   Profile,
   PriceWatch,
+  Priority,
   ProductSearchResult,
   Purchase,
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { DataStore } from "./types";
@@ -32,10 +34,13 @@ export interface UserDelta {
   shares: SharedAccess[];
   invites: ShareInvite[];
   contributions: Contribution[];
+  /** Items the student added themselves - optional so cookies saved before
+   * this field existed still decode fine (treated as an empty list). */
+  customItems?: ChecklistItem[];
 }
 
 export function emptyDelta(): UserDelta {
-  return { v: 1, profile: null, statuses: {}, budget: null, basket: [], purchases: [], priceWatches: [], shares: [], invites: [], contributions: [] };
+  return { v: 1, profile: null, statuses: {}, budget: null, basket: [], purchases: [], priceWatches: [], shares: [], invites: [], contributions: [], customItems: [] };
 }
 
 /**
@@ -89,14 +94,32 @@ export class DeltaStore implements DataStore {
     return [...this.base.items];
   }
   async getChecklistItem(id: string) {
-    return this.base.items.find((i) => i.id === id) ?? null;
+    return this.base.items.find((i) => i.id === id) ?? (this.delta.customItems ?? []).find((i) => i.id === id) ?? null;
+  }
+  async addCustomChecklistItem(userId: string, input: { category: string; item: string; qty?: number; notes?: string; priority?: Priority; timing?: Timing; budgetEstimate?: number | null }) {
+    const item: ChecklistItem = {
+      id: randomUUID(),
+      sourceKey: `custom/${randomUUID()}`,
+      category: input.category,
+      item: input.item,
+      priority: input.priority ?? "recommended",
+      timing: input.timing ?? "buy_before",
+      defaultQty: input.qty ?? 1,
+      budgetEstimate: input.budgetEstimate ?? null,
+      notes: input.notes ?? "",
+      custom: true,
+      ownerId: userId,
+    };
+    this.delta.customItems = [...(this.delta.customItems ?? []), item];
+    this.commit();
+    return item;
   }
   private view(item: ChecklistItem): ChecklistView {
     const d = this.delta.statuses[item.id];
     return { ...item, status: d?.s ?? defaultStatusFromTiming(item.timing), qty: d?.q ?? item.defaultQty, customNotes: d?.n ?? "", box: d?.b ?? "", updatedAt: d?.t ?? null };
   }
   async listUserChecklist() {
-    return this.base.items.map((i) => this.view(i));
+    return [...this.base.items, ...(this.delta.customItems ?? [])].map((i) => this.view(i));
   }
   async getUserChecklistItem(_userId: string, checklistItemId: string) {
     const item = await this.getChecklistItem(checklistItemId);

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AccommodationProfile,
@@ -9,10 +10,12 @@ import type {
   Contribution,
   Profile,
   PriceWatch,
+  Priority,
   ProductSearchResult,
   Purchase,
   SharedAccess,
   ShareInvite,
+  Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
@@ -35,6 +38,8 @@ function toChecklistItem(r: Row): ChecklistItem {
     defaultQty: Number(r.default_qty ?? 1),
     budgetEstimate: n(r.budget_estimate),
     notes: s(r.notes),
+    custom: Boolean(r.is_custom),
+    ownerId: r.owner_id == null ? null : s(r.owner_id),
   };
 }
 function toEntry(r: Row): UserChecklistEntry {
@@ -127,7 +132,7 @@ export class SupabaseStore implements DataStore, AdminStore {
   }
 
   async listChecklistItems() {
-    const res = await this.db.from("checklist_items").select("*").order("category").order("item");
+    const res = await this.db.from("checklist_items").select("*").is("owner_id", null).order("category").order("item");
     return (must(res, "checklist_items") as Row[]).map(toChecklistItem);
   }
   async getChecklistItem(id: string) {
@@ -135,9 +140,36 @@ export class SupabaseStore implements DataStore, AdminStore {
     if (error) throw new Error(`checklist_items: ${error.message}`);
     return data ? toChecklistItem(data as Row) : null;
   }
+  async addCustomChecklistItem(userId: string, input: { category: string; item: string; qty?: number; notes?: string; priority?: Priority; timing?: Timing; budgetEstimate?: number | null }) {
+    const res = await this.db
+      .from("checklist_items")
+      .insert({
+        source_key: `custom/${randomUUID()}`,
+        category: input.category,
+        item: input.item,
+        priority: input.priority ?? "recommended",
+        timing: input.timing ?? "buy_before",
+        default_qty: input.qty ?? 1,
+        budget_estimate: input.budgetEstimate ?? null,
+        notes: input.notes ?? "",
+        is_custom: true,
+        owner_id: userId,
+      })
+      .select("*")
+      .single();
+    return toChecklistItem(must(res, "checklist_items insert") as Row);
+  }
 
   async listUserChecklist(userId: string) {
-    const [items, entriesRes] = await Promise.all([this.listChecklistItems(), this.db.from("user_checklist").select("*").eq("user_id", userId)]);
+    // RLS on checklist_items (owner_id is null OR owner_id = auth.uid()) means
+    // this naturally includes the shared base list plus this user's own
+    // custom items - not this.listChecklistItems(), which filters to global
+    // only per its documented contract.
+    const [itemsRes, entriesRes] = await Promise.all([
+      this.db.from("checklist_items").select("*").order("category").order("item"),
+      this.db.from("user_checklist").select("*").eq("user_id", userId),
+    ]);
+    const items = (must(itemsRes, "checklist_items") as Row[]).map(toChecklistItem);
     const entries = new Map((must(entriesRes, "user_checklist") as Row[]).map(toEntry).map((e) => [e.checklistItemId, e]));
     return items.map((i): ChecklistView => {
       const e = entries.get(i.id);

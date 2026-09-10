@@ -49,6 +49,10 @@ export interface ChecklistItem {
   defaultQty: number;
   budgetEstimate: number | null;
   notes: string;
+  /** True for an item a student added themselves (not the shared base 77).
+   * Only visible to its owner - see ownerId. */
+  custom: boolean;
+  ownerId: string | null;
 }
 
 export interface UserChecklistEntry {

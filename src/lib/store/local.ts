@@ -11,11 +11,13 @@ import type {
   Contribution,
   Profile,
   PriceWatch,
+  Priority,
   ProductSearchResult,
   Purchase,
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
@@ -107,10 +109,28 @@ export class LocalStore implements DataStore, AdminStore {
 
   // ---- Base checklist ----
   async listChecklistItems() {
-    return [...this.state.checklistItems];
+    return this.state.checklistItems.filter((i) => i.ownerId == null);
   }
   async getChecklistItem(id: string) {
     return this.state.checklistItems.find((i) => i.id === id) ?? null;
+  }
+  async addCustomChecklistItem(userId: string, input: { category: string; item: string; qty?: number; notes?: string; priority?: Priority; timing?: Timing; budgetEstimate?: number | null }) {
+    const item: ChecklistItem = {
+      id: randomUUID(),
+      sourceKey: `custom/${randomUUID()}`,
+      category: input.category,
+      item: input.item,
+      priority: input.priority ?? "recommended",
+      timing: input.timing ?? "buy_before",
+      defaultQty: input.qty ?? 1,
+      budgetEstimate: input.budgetEstimate ?? null,
+      notes: input.notes ?? "",
+      custom: true,
+      ownerId: userId,
+    };
+    this.state.checklistItems.push(item);
+    this.persist();
+    return item;
   }
 
   // ---- User checklist ----
@@ -125,8 +145,9 @@ export class LocalStore implements DataStore, AdminStore {
     };
   }
   async listUserChecklist(userId: string) {
+    const visible = this.state.checklistItems.filter((i) => i.ownerId == null || i.ownerId === userId);
     const entries = new Map(this.state.userChecklist.filter((e) => e.userId === userId).map((e) => [e.checklistItemId, e]));
-    return this.state.checklistItems.map((i) => this.view(i, entries.get(i.id)));
+    return visible.map((i) => this.view(i, entries.get(i.id)));
   }
   async getUserChecklistItem(userId: string, checklistItemId: string) {
     const item = await this.getChecklistItem(checklistItemId);
@@ -324,7 +345,7 @@ export class LocalStore implements DataStore, AdminStore {
         Object.assign(existing, { category: r.category, item: r.item, priority: r.priority, timing: r.timing, defaultQty: r.defaultQty, budgetEstimate: r.budgetEstimate, notes: r.notes });
         updated++;
       } else {
-        this.state.checklistItems.push({ id: checklistItemIdFor(r.sourceKey), ...r });
+        this.state.checklistItems.push({ id: checklistItemIdFor(r.sourceKey), ...r, custom: false, ownerId: null });
         inserted++;
       }
     }

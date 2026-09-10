@@ -8,11 +8,13 @@ import type {
   Contribution,
   Profile,
   PriceWatch,
+  Priority,
   ProductSearchResult,
   Purchase,
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 
@@ -42,9 +44,13 @@ export interface DataStore {
   getProfile(userId: string): Promise<Profile | null>;
   upsertProfile(userId: string, patch: Partial<Omit<Profile, "id" | "createdAt" | "updatedAt">>): Promise<Profile>;
 
-  // Base checklist (read-only for users)
+  // Base checklist (read-only for users) - shared items only (ownerId null).
   listChecklistItems(): Promise<ChecklistItem[]>;
   getChecklistItem(id: string): Promise<ChecklistItem | null>;
+  /** A student's own item, added free-text - not part of the shared base
+   * list, only ever visible to them. Appears in their listUserChecklist()
+   * alongside the shared items. */
+  addCustomChecklistItem(userId: string, input: { category: string; item: string; qty?: number; notes?: string; priority?: Priority; timing?: Timing; budgetEstimate?: number | null }): Promise<ChecklistItem>;
 
   // User checklist
   listUserChecklist(userId: string): Promise<ChecklistView[]>;

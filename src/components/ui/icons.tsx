@@ -51,6 +51,9 @@ export const CHECKLIST_STATUS_ICON = {
 export const MISC_ICON_PATH = {
   back: "M15 6l-6 6 6 6",
   chevronDown: "M6 9l6 6 6-6",
+  chevronRight: "M9 6l6 6-6 6",
+  plus: "M12 5v14M5 12h14",
+  x: "M6 6l12 12M18 6L6 18",
   bell: "M6 16v-5a6 6 0 0 1 12 0v5l2 2H4l2-2Z M10 20a2 2 0 0 0 4 0",
   sun: "M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4",
   moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z",

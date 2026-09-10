@@ -30,6 +30,8 @@ export function loadBaseData(csvPath = DEFAULT_CSV, accommodationsPath = DEFAULT
     defaultQty: r.defaultQty,
     budgetEstimate: r.budgetEstimate,
     notes: r.notes,
+    custom: false,
+    ownerId: null,
   }));
   const accommodations: AccommodationProfile[] = loadAccommodationSeeds(accommodationsPath).map((a) => ({ id: `acc_${a.slug}`, ...a }));
   g.__awBaseData = { items, accommodations };
