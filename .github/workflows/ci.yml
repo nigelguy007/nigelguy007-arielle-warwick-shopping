@@ -1,15 +1,8 @@
 name: CI
-on:
-  push:
-    paths: ["arielle-warwick-shopping/**"]
-  pull_request:
-    paths: ["arielle-warwick-shopping/**"]
+on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: arielle-warwick-shopping
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,7 +12,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: arielle-warwick-shopping/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
