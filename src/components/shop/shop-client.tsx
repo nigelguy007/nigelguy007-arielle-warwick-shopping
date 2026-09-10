@@ -9,6 +9,7 @@ import { SectionTitle } from "@/components/ui/card";
 import { CompareView } from "./compare-view";
 import { BasketView } from "./basket-view";
 import { OffersPanel } from "./offers-panel";
+import { StoreConnectionsPanel } from "./store-connections-panel";
 import { RETAILERS, type BasketItem } from "@/lib/types";
 import type { BasketTotals, BudgetSummary } from "@/lib/budget/math";
 
@@ -58,6 +59,10 @@ export function ShopClient({ basket, totals, budget }: { basket: BasketItem[]; t
           <Chip key={s} active={query.toLowerCase() === s.toLowerCase()} onClick={() => search(s)}>{s}</Chip>
         ))}
       </ChipRow>
+
+      <div className="pt-7">
+        <StoreConnectionsPanel />
+      </div>
 
       {offers ? (
         <>

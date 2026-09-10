@@ -6,14 +6,13 @@ test.describe.configure({ mode: "serial" });
 test("1-2: sign in and complete onboarding", async ({ page }) => {
   await resetOnboarding(page);
   await signInAndOnboard(page, { budget: 200 });
-  await expect(page.getByText("Budget left")).toBeVisible();
-  await expect(page.getByText("£200.00", { exact: true })).toBeVisible();
+  await expect(page.getByText(/£200\.00 left/)).toBeVisible();
   await expect(page.getByText(/Bluebell/).first()).toBeVisible();
 });
 
 test("3: full checklist is present with filters", async ({ page }) => {
   await signInAndOnboard(page);
-  await page.getByRole("link", { name: "Checklist" }).click();
+  await page.getByRole("link", { name: "List" }).click();
   await expect(page.getByRole("heading", { name: "Checklist" })).toBeVisible();
   await expect(page.getByText(/77 of 77 items/)).toBeVisible();
   await page.getByRole("button", { name: "Essentials" }).click();

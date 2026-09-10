@@ -15,11 +15,14 @@ import type {
   Purchase,
   SharedAccess,
   ShareInvite,
+  StoreConnection,
+  StoreMethod,
   Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
 import { defaultStatusFromTiming } from "./local";
+import { connectionMethodFor } from "@/lib/stores/known-api";
 import { generateShareCode } from "@/lib/sharing/code";
 
 type Row = Record<string, unknown>;
@@ -95,6 +98,9 @@ function toShareInvite(r: Row): ShareInvite {
 }
 function toContribution(r: Row): Contribution {
   return { id: s(r.id), ownerId: s(r.owner_id), contributorId: s(r.contributor_id), contributorName: s(r.contributor_name), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), amount: Number(r.amount), note: s(r.note), createdAt: s(r.created_at) };
+}
+function toStoreConnection(r: Row): StoreConnection {
+  return { id: s(r.id), userId: s(r.user_id), retailer: s(r.retailer), method: r.method as StoreMethod, connectedAt: s(r.connected_at) };
 }
 
 function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
@@ -315,6 +321,22 @@ export class SupabaseStore implements DataStore, AdminStore {
       .select("*")
       .single();
     return toContribution(must(res, "contributions insert") as Row);
+  }
+
+  // ---- Store connections ----
+  async listStoreConnections(userId: string) {
+    const res = await this.db.from("store_connections").select("*").eq("user_id", userId);
+    return (must(res, "store_connections") as Row[]).map(toStoreConnection);
+  }
+  async connectStore(userId: string, retailer: string) {
+    const existing = await this.db.from("store_connections").select("*").eq("user_id", userId).ilike("retailer", retailer).maybeSingle();
+    if (existing.data) return toStoreConnection(existing.data as Row);
+    const res = await this.db.from("store_connections").insert({ user_id: userId, retailer, method: connectionMethodFor(retailer) }).select("*").single();
+    return toStoreConnection(must(res, "store_connections insert") as Row);
+  }
+  async disconnectStore(userId: string, retailer: string) {
+    const res = await this.db.from("store_connections").delete().eq("user_id", userId).ilike("retailer", retailer);
+    if (res.error) throw new Error(`store_connections delete: ${res.error.message}`);
   }
 
   // ---- Admin (secret key client) ----

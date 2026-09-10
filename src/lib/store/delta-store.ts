@@ -15,12 +15,14 @@ import type {
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  StoreConnection,
   Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { DataStore } from "./types";
 import { defaultStatusFromTiming } from "./local";
 import { generateShareCode } from "@/lib/sharing/code";
+import { connectionMethodFor } from "@/lib/stores/known-api";
 
 /** Everything a demo user has changed, kept small enough to live in cookies. */
 export interface UserDelta {
@@ -37,6 +39,7 @@ export interface UserDelta {
   /** Items the student added themselves - optional so cookies saved before
    * this field existed still decode fine (treated as an empty list). */
   customItems?: ChecklistItem[];
+  storeConnections?: StoreConnection[];
 }
 
 export function emptyDelta(): UserDelta {
@@ -292,6 +295,23 @@ export class DeltaStore implements DataStore {
     this.delta.contributions.push(c);
     this.commit();
     return c;
+  }
+
+  // ---- Store connections ----
+  async listStoreConnections() {
+    return this.delta.storeConnections ?? [];
+  }
+  async connectStore(userId: string, retailer: string) {
+    const existing = (this.delta.storeConnections ?? []).find((c) => c.retailer.toLowerCase() === retailer.toLowerCase());
+    if (existing) return existing;
+    const conn: StoreConnection = { id: randomUUID(), userId, retailer, method: connectionMethodFor(retailer), connectedAt: new Date().toISOString() };
+    this.delta.storeConnections = [...(this.delta.storeConnections ?? []), conn];
+    this.commit();
+    return conn;
+  }
+  async disconnectStore(_userId: string, retailer: string) {
+    this.delta.storeConnections = (this.delta.storeConnections ?? []).filter((c) => c.retailer.toLowerCase() !== retailer.toLowerCase());
+    this.commit();
   }
 }
 

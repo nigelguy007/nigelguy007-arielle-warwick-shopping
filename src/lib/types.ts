@@ -284,6 +284,22 @@ export const RETAILERS = [
   "Currys",
 ] as const;
 
+// ---------- Store connections ----------
+// A student connects a retailer so its prices/stock can be read directly,
+// instead of relying only on the aggregated product search. Nothing is
+// persisted until they actually authorize it (see the Shop screen) - nowhere
+// does the app claim a connection exists before that happens.
+export const STORE_METHODS = ["API", "MCP"] as const;
+export type StoreMethod = (typeof STORE_METHODS)[number];
+
+export interface StoreConnection {
+  id: string;
+  userId: string;
+  retailer: string;
+  method: StoreMethod;
+  connectedAt: string;
+}
+
 export const WARWICK_CAMPUS: LocationContext = {
   label: "University of Warwick, Coventry CV4 7AL",
   source: "campus",

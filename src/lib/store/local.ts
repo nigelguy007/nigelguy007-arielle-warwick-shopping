@@ -17,12 +17,14 @@ import type {
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  StoreConnection,
   Timing,
   UserChecklistEntry,
 } from "@/lib/types";
 import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } from "./types";
 import { generateShareCode } from "@/lib/sharing/code";
 import { checklistItemIdFor } from "./base-data";
+import { connectionMethodFor } from "@/lib/stores/known-api";
 
 export const LOCAL_DEMO_USER_ID = "local-demo-user";
 
@@ -39,6 +41,7 @@ interface LocalState {
   shares: SharedAccess[];
   invites: ShareInvite[];
   contributions: Contribution[];
+  storeConnections: StoreConnection[];
 }
 
 const EMPTY: LocalState = {
@@ -54,6 +57,7 @@ const EMPTY: LocalState = {
   shares: [],
   invites: [],
   contributions: [],
+  storeConnections: [],
 };
 
 /**
@@ -333,6 +337,23 @@ export class LocalStore implements DataStore, AdminStore {
     this.state.contributions.push(c);
     this.persist();
     return c;
+  }
+
+  // ---- Store connections ----
+  async listStoreConnections(userId: string) {
+    return this.state.storeConnections.filter((c) => c.userId === userId);
+  }
+  async connectStore(userId: string, retailer: string) {
+    const existing = this.state.storeConnections.find((c) => c.userId === userId && c.retailer.toLowerCase() === retailer.toLowerCase());
+    if (existing) return existing;
+    const conn: StoreConnection = { id: randomUUID(), userId, retailer, method: connectionMethodFor(retailer), connectedAt: new Date().toISOString() };
+    this.state.storeConnections.push(conn);
+    this.persist();
+    return conn;
+  }
+  async disconnectStore(userId: string, retailer: string) {
+    this.state.storeConnections = this.state.storeConnections.filter((c) => !(c.userId === userId && c.retailer.toLowerCase() === retailer.toLowerCase()));
+    this.persist();
   }
 
   // ---- Admin / seed ----

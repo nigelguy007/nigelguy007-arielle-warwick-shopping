@@ -14,6 +14,7 @@ import type {
   SharedAccess,
   SharedAccessView,
   ShareInvite,
+  StoreConnection,
   Timing,
   UserChecklistEntry,
 } from "@/lib/types";
@@ -103,6 +104,12 @@ export interface DataStore {
   /** The "contribution pot": payments/pledges a parent logs toward the move-in budget. */
   listContributions(ownerId: string): Promise<Contribution[]>;
   addContribution(ownerId: string, contributorId: string, contributorName: string, input: { amount: number; note: string; checklistItemId: string | null }): Promise<Contribution>;
+
+  /** Store connections - see StoreConnection in @/lib/types. A row only ever
+   * exists once the student has actually authorized it. */
+  listStoreConnections(userId: string): Promise<StoreConnection[]>;
+  connectStore(userId: string, retailer: string): Promise<StoreConnection>;
+  disconnectStore(userId: string, retailer: string): Promise<void>;
 }
 
 /** Admin/seed operations. Local: same object. Supabase: needs the secret key. */
