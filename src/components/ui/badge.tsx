@@ -18,17 +18,12 @@ export function MockBadge({ mock }: { mock: boolean }) {
   return mock ? <Badge tone="mock">Mock data · not live</Badge> : null;
 }
 
-/** Ink-stamp treatment for a checklist item's priority, e.g. "essential" - stands apart
- * from the pill badges used for status/mock tags rather than sharing their shape. */
+/** Corner-notched packing-sticker treatment for a checklist item's priority,
+ * e.g. "essential" - stands apart from the pill badges used for status/mock
+ * tags rather than sharing their shape. */
 export function StampBadge({ tone = "accent", className, children }: { tone?: "accent" | "neutral"; className?: string; children: React.ReactNode }) {
   return (
-    <span
-      className={cn(
-        "stamp",
-        tone === "accent" ? "border-accent/60 text-accent-ink" : "border-border text-muted",
-        className,
-      )}
-    >
+    <span className={cn("tag-stamp", tone === "neutral" && "bg-black/5 text-muted", className)} style={tone === "accent" ? undefined : { background: "none" }}>
       {children}
     </span>
   );

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getStore } from "@/lib/store";
 import { BottomNav } from "@/components/nav/bottom-nav";
-import { AgentFab } from "@/components/nav/agent-fab";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +11,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const profile = await store.getProfile(user.id);
   if (!profile?.onboardingComplete) redirect("/onboarding");
   return (
-    <div className="mx-auto min-h-dvh max-w-lg pb-28">
+    <div className="mx-auto min-h-dvh max-w-lg dock-pad">
       {children}
-      <AgentFab />
       <BottomNav />
     </div>
   );

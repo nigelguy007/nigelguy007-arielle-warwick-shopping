@@ -1,29 +1,73 @@
 @import "tailwindcss";
 
+/*
+ * Design language: a shipping manifest / luggage tag, not a SaaS dashboard.
+ * Light and dark are each constructed independently in OKLCH (not one
+ * palette inverted) - see .impeccable.md for the full brief. Ink-blue
+ * carries primary action; marigold is reserved for "hopeful" moments
+ * (completion, a good find). Token NAMES below are kept stable across the
+ * redesign (only values changed) since every component's Tailwind classes
+ * (bg-card, text-muted, bg-accent-soft, ...) are generated from them.
+ */
 :root {
-  /* Warm kraft-paper neutrals - the "packing paper" the rest of the palette sits on. */
-  --background: #efe6d8;
-  --foreground: #211a16;
-  --card: #fbf7ee;
-  --muted: #6e6255;
-  --border: #ddd0b6;
+  --background: oklch(0.94 0.016 75);
+  --foreground: oklch(0.24 0.025 65);
+  --card: oklch(0.975 0.01 75);
+  --muted: oklch(0.48 0.03 65);
+  --border: oklch(0.85 0.022 70);
 
-  /* Oxblood accent - a collegiate, confident ink, not the default terracotta/orange. */
-  --accent: #7a2331;
-  --accent-soft: #f0dade;
-  --accent-ink: #4f1119;
+  --accent: oklch(0.42 0.135 255);
+  --accent-ink: oklch(0.32 0.12 255);
+  --accent-soft: oklch(0.93 0.032 255);
 
-  --success: #2f6b4f;
-  --success-soft: #dcebe1;
-  --warn: #8a5a16;
-  --warn-soft: #f3e6cc;
-  --danger: #a23a2c;
-  --danger-soft: #f3ddd6;
-  --mock: #4a4a72;
-  --mock-soft: #e5e3ef;
+  --marigold: oklch(0.78 0.15 75);
+  --marigold-ink: oklch(0.4 0.13 60);
+  --marigold-soft: oklch(0.93 0.05 75);
+
+  --success: oklch(0.5 0.11 145);
+  --success-soft: oklch(0.93 0.04 145);
+  --warn: oklch(0.55 0.13 70);
+  --warn-soft: oklch(0.92 0.05 80);
+  --danger: oklch(0.5 0.16 25);
+  --danger-soft: oklch(0.92 0.05 25);
+  --mock: oklch(0.45 0.06 280);
+  --mock-soft: oklch(0.92 0.02 280);
 
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
+  /* Reserved height for the single docked bottom nav bar (which now also
+     carries the agent entry point as a tab, not a separately-floating
+     button - see bottom-nav.tsx). Every scroll container pads by this
+     exact value so it can never be covered - a real bug in the previous
+     pass, now a hard rule. */
+  --dock-h: 4.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.19 0.015 260);
+    --foreground: oklch(0.93 0.012 80);
+    --card: oklch(0.245 0.017 260);
+    --muted: oklch(0.68 0.02 80);
+    --border: oklch(0.34 0.02 260);
+
+    --accent: oklch(0.74 0.12 255);
+    --accent-ink: oklch(0.86 0.08 255);
+    --accent-soft: oklch(0.28 0.05 255);
+
+    --marigold: oklch(0.78 0.14 75);
+    --marigold-ink: oklch(0.88 0.1 80);
+    --marigold-soft: oklch(0.3 0.06 75);
+
+    --success: oklch(0.72 0.12 145);
+    --success-soft: oklch(0.28 0.05 145);
+    --warn: oklch(0.76 0.13 75);
+    --warn-soft: oklch(0.3 0.05 75);
+    --danger: oklch(0.7 0.15 25);
+    --danger-soft: oklch(0.3 0.06 25);
+    --mock: oklch(0.68 0.05 280);
+    --mock-soft: oklch(0.28 0.03 280);
+  }
 }
 
 @theme inline {
@@ -35,6 +79,9 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
+  --color-marigold: var(--marigold);
+  --color-marigold-ink: var(--marigold-ink);
+  --color-marigold-soft: var(--marigold-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warn: var(--warn);
@@ -45,11 +92,12 @@
   --color-mock-soft: var(--mock-soft);
   --font-sans: var(--font-body-raw), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-display-raw), var(--font-sans);
-  --radius-card: 1.15rem;
+  --radius-card: 0.625rem;
+  --radius-chip: 0.5rem;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -61,35 +109,38 @@ body {
   overscroll-behavior-y: none;
 }
 
-button, a { -webkit-tap-highlight-color: transparent; }
+button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-.card { @apply rounded-[var(--radius-card)] bg-card border border-border shadow-[0_1px_2px_rgba(33,26,22,0.05)]; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
+.card { @apply rounded-[var(--radius-card)] bg-card border border-border shadow-[0_1px_2px_rgba(0,0,0,0.06)]; }
 .tap { @apply min-h-11 min-w-11; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+.tabular { font-variant-numeric: tabular-nums; }
 
-/* Ticket-stub motif: a torn/perforated divider, used once per screen at most - the
-   one deliberate structural device drawn from the app's own subject (a move, a journey). */
-.stub-tear {
+/* Pads the bottom of a scroll container so the docked nav/agent chip never
+   covers content underneath it. */
+.dock-pad { padding-bottom: calc(var(--dock-h) + var(--sab) + 1rem); }
+
+/*
+ * Manifest tear: the one signature structural device (used once per screen
+ * at most), replacing the previous pass's ticket-stub - a perforated rule,
+ * like the strip above the itemised rows on a shipping manifest.
+ */
+.manifest-tear {
   border: none;
-  border-top: 2px dashed color-mix(in srgb, var(--accent) 35%, transparent);
-  position: relative;
+  height: 2px;
+  background-image: repeating-linear-gradient(to right, var(--border) 0 6px, transparent 6px 12px);
 }
-.stub-tear::before,
-.stub-tear::after {
-  content: "";
-  position: absolute;
-  top: -8px;
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
-  background: var(--background);
-}
-.stub-tear::before { left: -1.5rem; }
-.stub-tear::after { right: -1.5rem; }
 
-/* Ink-stamp badge: rotated, dashed border - a customs-stamp treatment for "essential". */
-.stamp {
-  @apply inline-flex items-center rounded-md border-2 border-dashed px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
-  transform: rotate(-3deg);
+/* Corner-notched stamp: a solid (not dashed) rotated tag for "essential" -
+   reads as a packing sticker, not a customs-stamp cliche. */
+.tag-stamp {
+  @apply relative inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+  background: var(--marigold-soft);
+  color: var(--marigold-ink);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }

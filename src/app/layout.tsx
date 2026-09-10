@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Oswald, Karla } from "next/font/google";
+import { Big_Shoulders, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 
-const display = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display-raw", display: "swap" });
-const body = Karla({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-body-raw", display: "swap" });
+// Big Shoulders: designed around Chicago fire-escape stencils and industrial
+// signage - a genuine "shipping manifest / crate stencil" face, not a reflex
+// display pick. Hanken Grotesk: warm, humanist body face with good mobile
+// legibility, distinct from the previous pass's Karla.
+const display = Big_Shoulders({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display-raw", display: "swap" });
+const body = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-body-raw", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Warwick Move-In", template: "%s · Warwick Move-In" },
@@ -18,7 +22,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#EFE6D8",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f2eae0" },
+    { media: "(prefers-color-scheme: dark)", color: "#10141b" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
