@@ -15,7 +15,7 @@ export function Badge({ tone = "neutral", className, children }: { tone?: Tone; 
 }
 
 export function MockBadge({ mock }: { mock: boolean }) {
-  return mock ? <Badge tone="mock">Mock data, not live</Badge> : null;
+  return mock ? <Badge tone="mock">Mock data · not live</Badge> : null;
 }
 
 /** Ink-stamp treatment for a checklist item's priority, e.g. "essential" - stands apart

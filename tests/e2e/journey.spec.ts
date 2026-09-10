@@ -32,8 +32,11 @@ test("4-5: search a duvet, compare options, add to basket, find nearby", async (
   await expect(page.getByText(/Source:/).first()).toBeVisible();
   await expect(page.getByText(/Checked (just now|\d+ minutes? ago)/).first()).toBeVisible();
   await expect(page.getByText("Mock data · not live").first()).toBeVisible();
-  // bed size unconfirmed: warning must be shown, no guessing
-  await expect(page.getByText(/Bed size not confirmed/).first()).toBeVisible();
+  // Bluebell's bed size (small double) is verified, so shown results are the small
+  // double duvets and no "unconfirmed" guessing warning appears (single/double
+  // duvets are correctly excluded instead - see the "Excluded" panel below).
+  await expect(page.getByText("Small Double 10.5 Tog Duvet")).toBeVisible();
+  await expect(page.getByText(/Bed size not confirmed/)).toHaveCount(0);
 
   await page.getByRole("button", { name: "Add to basket" }).first().click();
   await expect(page.getByText(/Added .* to your basket/)).toBeVisible();
