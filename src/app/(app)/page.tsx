@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, Percent, GraduationCap, PackageOpen, Info } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { loadDashboard } from "@/lib/services/dashboard";
-import { StatCard } from "@/components/home/stat-card";
+import { TicketHero, StatRow } from "@/components/home/stat-card";
 import { BuyNextCard } from "@/components/home/buy-next-card";
 import { SectionTitle } from "@/components/ui/card";
 import { gbp } from "@/lib/utils";
@@ -15,21 +15,27 @@ export default async function HomePage() {
   const status = providerStatus();
 
   return (
-    <main className="px-4">
-      <header className="pb-2" style={{ paddingTop: "calc(var(--sat) + 1.25rem)" }}>
-        <h1 className="text-3xl font-bold tracking-tight">Hi {name} 👋</h1>
-        <p className="text-muted">Warwick move-in{d.accommodation ? ` · ${d.accommodation.name}` : ""}</p>
-      </header>
-
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <StatCard label="Still needed" value={`${d.summary.stillNeeded} items`} href="/checklist?filter=needed" tone="accent" />
-        <StatCard label="Budget left" value={d.budgetSummary.remaining === null ? "Set budget" : gbp(d.budgetSummary.remaining)} sub={d.budgetSummary.budget !== null ? `of ${gbp(d.budgetSummary.budget)} · spent ${gbp(d.budgetSummary.spent)}` : undefined} href="/me" tone="success" />
-        <StatCard label="Bought" value={`${d.summary.essentialsDone} / ${d.summary.essentialsTotal}`} sub="essentials sorted" href="/checklist?filter=bought" />
-        <StatCard label="Packed" value={`${d.summary.packed} items`} href="/checklist?filter=packed" />
-      </div>
+    <main className="px-4" style={{ paddingTop: "calc(var(--sat) + 1rem)" }}>
+      <TicketHero
+        name={name}
+        place={d.accommodation ? `Warwick move-in - ${d.accommodation.name}` : "Warwick move-in"}
+        left={{ label: "Still needed", value: `${d.summary.stillNeeded}`, href: "/checklist?filter=needed" }}
+        right={{
+          label: "Budget left",
+          value: d.budgetSummary.remaining === null ? "Set budget" : gbp(d.budgetSummary.remaining),
+          sub: d.budgetSummary.budget !== null ? `of ${gbp(d.budgetSummary.budget)}, spent ${gbp(d.budgetSummary.spent)}` : undefined,
+          href: "/me",
+        }}
+      />
+      <StatRow
+        items={[
+          { label: "Bought", value: `${d.summary.essentialsDone}/${d.summary.essentialsTotal}`, href: "/checklist?filter=bought" },
+          { label: "Packed", value: `${d.summary.packed}`, href: "/checklist?filter=packed" },
+        ]}
+      />
 
       {status.mockVisible ? (
-        <p className="mt-3 flex items-start gap-2 rounded-2xl bg-violet-50 px-4 py-2 text-xs text-violet-800">
+        <p className="mt-3 flex items-start gap-2 rounded-2xl bg-mock-soft px-4 py-2 text-xs text-mock">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Development mode: prices, shops and offers are mock data, not live.
         </p>
       ) : null}

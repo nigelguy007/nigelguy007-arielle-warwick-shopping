@@ -85,7 +85,7 @@ export function MeClient({
           <div><p className="text-muted">Budget</p><p className="text-lg font-bold" data-testid="budget-amount">{budget.budget === null ? "Not set" : gbp(budget.budget)}</p></div>
           <div><p className="text-muted">Spent</p><p className="text-lg font-bold" data-testid="budget-spent">{gbp(budget.spent)}</p></div>
           <div><p className="text-muted">In basket</p><p className="text-lg font-bold">{gbp(budget.committed)}</p></div>
-          <div><p className="text-muted">Remaining</p><p className={`text-lg font-bold ${budget.remaining !== null && budget.remaining < 0 ? "text-red-600" : "text-success"}`} data-testid="budget-remaining">{budget.remaining === null ? "—" : gbp(budget.remaining)}</p></div>
+          <div><p className="text-muted">Remaining</p><p className={`text-lg font-bold ${budget.remaining !== null && budget.remaining < 0 ? "text-danger" : "text-success"}`} data-testid="budget-remaining">{budget.remaining === null ? "—" : gbp(budget.remaining)}</p></div>
         </div>
         <ChipRow>
           {PRESETS.map((p) => (

@@ -121,7 +121,7 @@ export function SharedView({
             </div>
             <div className="col-span-2">
               <p className="text-muted">Remaining</p>
-              <p className={`text-lg font-bold ${budgetSummary.remaining !== null && budgetSummary.remaining < 0 ? "text-red-600" : "text-success"}`}>{budgetSummary.remaining === null ? "—" : gbp(budgetSummary.remaining)}</p>
+              <p className={`text-lg font-bold ${budgetSummary.remaining !== null && budgetSummary.remaining < 0 ? "text-danger" : "text-success"}`}>{budgetSummary.remaining === null ? "—" : gbp(budgetSummary.remaining)}</p>
             </div>
           </div>
 

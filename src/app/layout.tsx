@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { Oswald, Karla } from "next/font/google";
 import "./globals.css";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
+
+const display = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display-raw", display: "swap" });
+const body = Karla({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-body-raw", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Warwick Move-In", template: "%s · Warwick Move-In" },
@@ -14,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FF4F1F",
+  themeColor: "#EFE6D8",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -22,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className="h-full antialiased">
+    <html lang="en-GB" className={`h-full antialiased ${display.variable} ${body.variable}`}>
       <body className="min-h-full">
         <OfflineBanner />
         {children}

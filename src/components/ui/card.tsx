@@ -10,8 +10,8 @@ export function Card({ className, children, ...props }: React.HTMLAttributes<HTM
 
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="flex items-end justify-between px-1 pt-6 pb-2">
-      <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-muted">{children}</h2>
+    <div className="flex items-end justify-between px-1 pt-7 pb-2">
+      <h2 className="font-display text-xl font-bold tracking-tight text-foreground">{children}</h2>
       {action}
     </div>
   );

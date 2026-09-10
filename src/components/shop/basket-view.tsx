@@ -71,7 +71,7 @@ export function BasketView({ basket, totals, budget, onSearch }: { basket: Baske
           {totals.delivery > 0 ? <span>incl. {gbp(totals.delivery)} delivery</span> : null}
           {totals.confirmedSavings > 0 ? <span className="text-success">Confirmed savings {gbp(totals.confirmedSavings)}</span> : null}
           {totals.potentialSavings > 0 ? <span>Potential savings {gbp(totals.potentialSavings)} (unverified, not applied)</span> : null}
-          {budget.remainingAfterBasket !== null ? <span className={budget.remainingAfterBasket < 0 ? "text-red-600" : ""}>Budget after basket {gbp(budget.remainingAfterBasket)}</span> : null}
+          {budget.remainingAfterBasket !== null ? <span className={budget.remainingAfterBasket < 0 ? "text-danger" : ""}>Budget after basket {gbp(budget.remainingAfterBasket)}</span> : null}
         </div>
       </div>
 

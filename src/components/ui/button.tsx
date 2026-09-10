@@ -6,16 +6,16 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "success";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-white hover:bg-accent-ink active:bg-accent-ink",
-  secondary: "bg-accent-soft text-accent-ink hover:bg-[#ffd9cc]",
-  ghost: "bg-transparent text-foreground border border-border hover:bg-black/5",
-  danger: "bg-red-50 text-red-700 border border-red-100 hover:bg-red-100",
-  success: "bg-success-soft text-success hover:bg-[#cdeedb]",
+  primary: "bg-accent text-[#fbf7ee] hover:bg-accent-ink active:bg-accent-ink",
+  secondary: "bg-accent-soft text-accent-ink hover:bg-[#e6c7cc]",
+  ghost: "bg-transparent text-foreground border-2 border-dashed border-border hover:border-accent/40 hover:bg-black/5",
+  danger: "bg-danger-soft text-danger border border-danger/20 hover:bg-[#eecbc2]",
+  success: "bg-success-soft text-success hover:bg-[#c9e1d3]",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm rounded-xl",
-  md: "h-11 px-4 text-[15px] rounded-2xl",
-  lg: "h-13 px-5 text-base rounded-2xl",
+  sm: "h-9 px-3 text-sm rounded-lg",
+  md: "h-11 px-4 text-[15px] rounded-xl",
+  lg: "h-13 px-5 text-base rounded-xl",
 };
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

@@ -10,7 +10,7 @@ export function PageHeader({ title, back, subtitle, right }: { title: string; ba
         </Link>
       ) : null}
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-2xl font-bold tracking-tight">{title}</h1>
+        <h1 className="font-display truncate text-3xl font-bold tracking-tight">{title}</h1>
         {subtitle ? <p className="text-sm text-muted">{subtitle}</p> : null}
       </div>
       {right}

@@ -44,7 +44,7 @@ export function AgentChat({ aiConfigured }: { aiConfigured: boolean }) {
 
   return (
     <div className="flex min-h-[70dvh] flex-col px-4">
-      {!aiConfigured ? <p className="mb-2 rounded-2xl bg-violet-50 px-4 py-2 text-xs text-violet-800">Simple mode: no AI model key is set, so I answer the common questions with rules. Add AI_GATEWAY_API_KEY and AI_MODEL for full conversation.</p> : null}
+      {!aiConfigured ? <p className="mb-2 rounded-2xl bg-mock-soft px-4 py-2 text-xs text-mock">Simple mode: no AI model key is set, so I answer the common questions with rules. Add AI_GATEWAY_API_KEY and AI_MODEL for full conversation.</p> : null}
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto pb-4">
         {messages.length === 0 ? <p className="pt-6 text-center text-sm text-muted">Ask me what to buy, where, and for how much.</p> : null}
         {messages.map((m) => {
