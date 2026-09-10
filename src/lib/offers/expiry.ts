@@ -28,3 +28,22 @@ export function describeExpiry(offer: Pick<OfferResult, "endDate">, now = new Da
   if (days === 1) return "Ends tomorrow";
   return `Ends in ${days} days`;
 }
+
+/** Whole days from `now` until `endDate`. Null when there's no end date or it can't be parsed - never guess a countdown. */
+export function daysUntilExpiry(offer: Pick<OfferResult, "endDate">, now = new Date()): number | null {
+  if (!offer.endDate) return null;
+  const end = Date.parse(offer.endDate);
+  if (!Number.isFinite(end)) return null;
+  return Math.ceil((end - now.getTime()) / 86_400_000);
+}
+
+/**
+ * True only for an offer that is currently active AND ends within `thresholdDays`.
+ * An already-expired offer is not "nearing" expiry (it's just gone), and an
+ * open-ended offer with no end date never triggers this - there is nothing to warn about.
+ */
+export function isNearingExpiry(offer: Pick<OfferResult, "startDate" | "endDate">, thresholdDays: number, now = new Date()): boolean {
+  if (!isOfferActive(offer, now)) return false;
+  const days = daysUntilExpiry(offer, now);
+  return days !== null && days <= thresholdDays;
+}

@@ -68,4 +68,26 @@ describe("LocalStore + seed", () => {
     expect(await store.updatePurchase("someone-else", purchase.id, { receiptImage: "data:image/jpeg;base64,nope" })).toBeNull();
     expect(await store.updatePurchase("arielle", "not-a-real-id", { receiptImage: "data:image/jpeg;base64,nope" })).toBeNull();
   });
+
+  it("tracks a price watch per user and lists every profile id for the alerts cron", async () => {
+    const store = new LocalStore(dir);
+    await store.upsertProfile("arielle", { firstName: "Arielle" });
+    await store.upsertProfile("someone-else", {});
+
+    expect(await store.getPriceWatch("arielle", "basket:b1")).toBeNull();
+    const first = await store.recordPriceObservation("arielle", "basket:b1", { label: "Kettle", retailer: "Argos", price: 20, currency: "GBP", productUrl: "https://example.com/kettle" });
+    expect(first).toMatchObject({ userId: "arielle", itemKey: "basket:b1", lastPrice: 20 });
+    expect(await store.getPriceWatch("someone-else", "basket:b1")).toBeNull(); // isolated per user
+
+    const updated = await store.recordPriceObservation("arielle", "basket:b1", { label: "Kettle", retailer: "Argos", price: 15, currency: "GBP", productUrl: "https://example.com/kettle" });
+    expect(updated.lastPrice).toBe(15);
+    expect((await store.listPriceWatches("arielle"))).toHaveLength(1);
+
+    // persists to disk
+    const reopened = new LocalStore(dir);
+    expect((await reopened.getPriceWatch("arielle", "basket:b1"))?.lastPrice).toBe(15);
+
+    const ids = await reopened.listProfileUserIds();
+    expect(ids).toEqual(expect.arrayContaining(["arielle", "someone-else"]));
+  });
 });

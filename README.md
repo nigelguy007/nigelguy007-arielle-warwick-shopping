@@ -32,7 +32,7 @@ Reusing a pre-installed Chromium for E2E: `PW_CHROMIUM_PATH=/path/to/chrome pnpm
 ## Production setup (Supabase + Vercel)
 
 1. **Supabase project**
-   - Run `supabase/migrations/0001_init.sql` (SQL editor or `supabase db push`). It creates all tables, the profile trigger and RLS policies.
+   - Run `supabase/migrations/0001_init.sql` then `0002_price_watches.sql` (SQL editor or `supabase db push`). They create all tables (including the price-watch table the alerts job uses), the profile trigger and RLS policies.
    - Enable **Email (magic link)** under Authentication → Providers. Add your Vercel URL + `/auth/callback` to the redirect allow-list.
    - Copy the project URL, publishable key and secret key into env vars (below).
    - Seed the base checklist: `DATA_MODE=supabase NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SECRET_KEY=... pnpm import:checklist`.
@@ -40,7 +40,8 @@ Reusing a pre-installed Chromium for E2E: `PW_CHROMIUM_PATH=/path/to/chrome pnpm
 2. **Vercel**
    - Import the repo, set **Root Directory** to `arielle-warwick-shopping`. `vercel.json` pins pnpm, the London region and no-cache headers for the service worker.
    - Set the environment variables from `.env.example`. Minimum for production: `DATA_MODE=supabase`, the three Supabase vars, `NEXT_PUBLIC_APP_URL`.
-   - Add provider keys as you get them: `PRODUCT_PROVIDER=serpapi` + `SERPAPI_API_KEY`, or `PRODUCT_PROVIDER=awin-feed` + `AWIN_DATAFEED_API_KEY` + `AWIN_FEED_IDS`; `MAP_PROVIDER=google` + `GOOGLE_MAPS_SERVER_API_KEY` (+ `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` for the in-app map); `OFFER_PROVIDER=awin` + Awin publisher credentials; `AI_GATEWAY_API_KEY` + `AI_MODEL` for the conversational agent.
+   - Add provider keys as you get them: `PRODUCT_PROVIDER=serpapi` + `SERPAPI_API_KEY`, or `PRODUCT_PROVIDER=awin-feed` + `AWIN_DATAFEED_API_KEY` + `AWIN_FEED_IDS`; `MAP_PROVIDER=google` + `GOOGLE_MAPS_SERVER_API_KEY` (+ `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` for the in-app map); `OFFER_PROVIDER=awin` + Awin publisher credentials; `AI_GATEWAY_API_KEY` + `AI_MODEL` for the conversational agent; `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` + `ALERT_EMAIL_FROM` for price-drop/voucher-expiry emails.
+   - Set `CRON_SECRET` to enable `/api/alerts/run` (see `vercel.json`'s `crons` entry, which calls it daily) - Vercel sends this as `Authorization: Bearer $CRON_SECRET` automatically once the var is set on the project.
    - Deploy. Open the URL on an iPhone → Share → **Add to Home Screen**.
 3. **Invite Arielle**: send her the URL; she enters her email and taps the magic link. Her profile is created automatically and onboarding runs on first open.
 
@@ -84,6 +85,8 @@ src/lib/ranking           hard compatibility filters + value score
 src/lib/recommendations   "Buy next"
 src/lib/providers/        product (mock, serpapi) · map (mock, google) · offer (mock, awin, student links)
 src/lib/store/            DataStore interface · LocalStore (file) · SupabaseStore (RLS)
+src/lib/alerts/           price-drop + voucher-expiry detection; /api/alerts/run is its cron entry point
+src/lib/notify/           Notifier interface · ConsoleNotifier (always on) · ResendEmailNotifier
 src/lib/ai/               agent tools (14), system prompt, rule-based fallback
 src/components/           UI
 tests/unit · tests/integration · tests/e2e
@@ -97,3 +100,4 @@ tests/unit · tests/integration · tests/e2e
 - Student discounts are never scraped or verified by the app; it shows "Check student discount" deep links only.
 - Accommodation fields stay `null` until `verified_at` is set from the official Warwick page. Bedding and cookware recommendations warn or refuse accordingly. Supplied appliances are excluded from Buy next and search.
 - Production (`NODE_ENV=production` outside Vercel preview) refuses to show mock prices; set `ALLOW_MOCK_IN_PRODUCTION=true` only for a throwaway demo.
+- Price-drop alerts only fire against a genuinely lower price than the last one recorded for that exact listing; the first time an item is seen it only seeds a baseline, never a claimed "drop". Voucher-expiry alerts label unverified offers as "Potential offer", never as a confirmed saving.

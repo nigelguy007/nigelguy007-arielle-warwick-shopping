@@ -138,6 +138,23 @@ export interface BasketItem {
   addedAt: string;
 }
 
+/**
+ * The last price we recorded for a tracked basket line, so a later check can tell
+ * whether it has genuinely dropped. `itemKey` is the checklist item id when the
+ * basket line is linked to one, else `basket:<basketItemId>`.
+ */
+export interface PriceWatch {
+  id: string;
+  userId: string;
+  itemKey: string;
+  label: string;
+  retailer: string;
+  lastPrice: number;
+  currency: string;
+  productUrl: string | null;
+  lastCheckedAt: string;
+}
+
 export interface LatLng {
   lat: number;
   lng: number;

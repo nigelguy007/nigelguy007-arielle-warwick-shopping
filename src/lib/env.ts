@@ -4,6 +4,7 @@ import "server-only";
 type ProductProvider = "mock" | "serpapi" | "awin-feed";
 type MapProvider = "mock" | "google";
 type OfferProvider = "mock" | "awin";
+type EmailProvider = "console" | "resend";
 type DataMode = "local" | "supabase";
 
 function pick<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
@@ -44,6 +45,31 @@ export const env = {
   get offerProvider(): OfferProvider {
     const p = pick(process.env.OFFER_PROVIDER, ["mock", "awin"] as const, "mock");
     return p === "awin" && !(process.env.AWIN_PUBLISHER_ID && process.env.AWIN_ACCESS_TOKEN) ? "mock" : p;
+  },
+  /** Same "no key -> mock/no-op automatically" rule as the other providers: the alerts job always has somewhere to send to. */
+  get emailProvider(): EmailProvider {
+    const p = pick(process.env.EMAIL_PROVIDER, ["console", "resend"] as const, "console");
+    return p === "resend" && !(process.env.RESEND_API_KEY && process.env.ALERT_EMAIL_FROM) ? "console" : p;
+  },
+  get resendApiKey() {
+    return process.env.RESEND_API_KEY ?? "";
+  },
+  get alertEmailFrom() {
+    return process.env.ALERT_EMAIL_FROM ?? "";
+  },
+  /** Shared secret an external scheduler (e.g. Vercel Cron) must send as `Authorization: Bearer <secret>` to POST/GET /api/alerts/run. */
+  get cronSecret() {
+    return process.env.CRON_SECRET ?? "";
+  },
+  /** Minimum saving (in the listing's currency) before a price change counts as a "drop" worth alerting on - filters out rounding noise. */
+  get priceDropAlertMin() {
+    const v = Number(process.env.PRICE_DROP_ALERT_MIN ?? "0.5");
+    return Number.isFinite(v) && v >= 0 ? v : 0.5;
+  },
+  /** How many days out a voucher must be from expiring before it's worth alerting on. */
+  get voucherExpiryAlertDays() {
+    const v = Number(process.env.VOUCHER_EXPIRY_ALERT_DAYS ?? "3");
+    return Number.isFinite(v) && v > 0 ? v : 3;
   },
   get aiConfigured() {
     return Boolean(process.env.AI_GATEWAY_API_KEY && process.env.AI_MODEL);
@@ -98,6 +124,7 @@ export function providerStatus() {
     product: env.productProvider,
     map: env.mapProvider,
     offer: env.offerProvider,
+    email: env.emailProvider === "resend" ? "configured" : "not_configured",
     ai: env.aiConfigured ? "configured" : "not_configured",
     routes: env.routesEnabled,
     mapsBrowserKey: Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY),

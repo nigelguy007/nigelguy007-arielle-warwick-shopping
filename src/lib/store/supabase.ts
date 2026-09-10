@@ -7,6 +7,7 @@ import type {
   ChecklistStatus,
   ChecklistView,
   Profile,
+  PriceWatch,
   ProductSearchResult,
   Purchase,
   UserChecklistEntry,
@@ -64,6 +65,9 @@ function toBasket(r: Row): BasketItem {
 }
 function toPurchase(r: Row): Purchase {
   return { id: s(r.id), userId: s(r.user_id), checklistItemId: r.checklist_item_id == null ? null : s(r.checklist_item_id), productSnapshot: (r.product_snapshot as ProductSearchResult) ?? null, retailer: s(r.retailer), paidPrice: Number(r.paid_price), voucherUsed: r.voucher_used == null ? null : s(r.voucher_used), purchasedAt: s(r.purchased_at), receiptImage: r.receipt_image == null ? null : s(r.receipt_image) };
+}
+function toPriceWatch(r: Row): PriceWatch {
+  return { id: s(r.id), userId: s(r.user_id), itemKey: s(r.item_key), label: s(r.label), retailer: s(r.retailer), lastPrice: Number(r.last_price), currency: s(r.currency) || "GBP", productUrl: r.product_url == null ? null : s(r.product_url), lastCheckedAt: s(r.last_checked_at) };
 }
 
 function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
@@ -180,6 +184,25 @@ export class SupabaseStore implements DataStore, AdminStore {
     return data ? toPurchase(data as Row) : null;
   }
 
+  // ---- Price watch ----
+  async listPriceWatches(userId: string) {
+    const res = await this.db.from("price_watches").select("*").eq("user_id", userId);
+    return (must(res, "price_watches") as Row[]).map(toPriceWatch);
+  }
+  async getPriceWatch(userId: string, itemKey: string) {
+    const { data, error } = await this.db.from("price_watches").select("*").eq("user_id", userId).eq("item_key", itemKey).maybeSingle();
+    if (error) throw new Error(`price_watches: ${error.message}`);
+    return data ? toPriceWatch(data as Row) : null;
+  }
+  async recordPriceObservation(userId: string, itemKey: string, patch: { label: string; retailer: string; price: number; currency: string; productUrl: string | null }) {
+    const res = await this.db
+      .from("price_watches")
+      .upsert({ user_id: userId, item_key: itemKey, label: patch.label, retailer: patch.retailer, last_price: patch.price, currency: patch.currency, product_url: patch.productUrl, last_checked_at: new Date().toISOString() }, { onConflict: "user_id,item_key" })
+      .select("*")
+      .single();
+    return toPriceWatch(must(res, "price_watches upsert") as Row);
+  }
+
   // ---- Admin (secret key client) ----
   async upsertChecklistItems(rows: ChecklistImportRow[]) {
     const existing = await this.db.from("checklist_items").select("source_key");
@@ -210,5 +233,9 @@ export class SupabaseStore implements DataStore, AdminStore {
     const { error } = await this.db.from("user_checklist").upsert(payload, { onConflict: "user_id,checklist_item_id" });
     if (error) throw new Error(`user_checklist seed: ${error.message}`);
     return payload.length;
+  }
+  async listProfileUserIds() {
+    const res = await this.db.from("profiles").select("id");
+    return (must(res, "profiles") as Row[]).map((r) => s(r.id));
   }
 }
