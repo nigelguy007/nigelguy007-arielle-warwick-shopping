@@ -10,11 +10,11 @@ import { OfflineBanner } from "@/components/pwa/offline-banner";
 const display = Manrope({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-display-raw", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Warwick Move-In", template: "%s · Warwick Move-In" },
-  description: "Arielle's Warwick move-in shopping agent: checklist, prices, nearby shops and budget.",
-  applicationName: "Warwick Move-In",
+  title: { default: "UniKit", template: "%s · UniKit" },
+  description: "Arielle, your university move-in shopping agent: checklist, prices, nearby shops and budget - for any UK university.",
+  applicationName: "UniKit",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Warwick Move-In" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "UniKit" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
   formatDetection: { telephone: false },
 };

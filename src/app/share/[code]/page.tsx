@@ -11,7 +11,7 @@ export default async function ShareCodePage({ params }: { params: Promise<{ code
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-6" style={{ paddingTop: "var(--sat)" }}>
       <div>
         <h1 className="font-display text-3xl font-bold tracking-tight">You&apos;ve been invited</h1>
-        <p className="text-muted">Accept to see their Warwick move-in checklist and budget.</p>
+        <p className="text-muted">Accept to see their move-in checklist and budget.</p>
       </div>
       <AcceptInvite code={code.toUpperCase()} />
     </main>
