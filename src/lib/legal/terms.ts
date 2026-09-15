@@ -15,19 +15,16 @@ export interface TermsSection {
 }
 
 /**
- * [APP OPERATOR] is still a placeholder, not real legal detail - swap it for
- * the real operator name before this is used with actual users (contact
- * email is already filled in: nemguy@gmail.com). Nothing here is legal
- * advice; it's a reasonable-faith GDPR-shaped starting point for a small
- * personal-data-collecting app, not a substitute for a lawyer if this
- * becomes a real product.
+ * Nothing here is legal advice; it's a reasonable-faith GDPR-shaped
+ * starting point for a small personal-data-collecting app, not a
+ * substitute for a lawyer if this becomes a real product.
  */
 export const TERMS_SECTIONS: TermsSection[] = [
   {
     heading: "Who this is",
     body: [
       "This app helps you plan and shop for university move-in: a checklist, a budget, price comparisons, and (if you choose) a way to let a parent follow along.",
-      "The app is operated by [APP OPERATOR]. Questions about your data go to nemguy@gmail.com.",
+      "The app is operated by Juliemango.ai. Questions about your data go to nemguy@gmail.com.",
     ],
   },
   {
