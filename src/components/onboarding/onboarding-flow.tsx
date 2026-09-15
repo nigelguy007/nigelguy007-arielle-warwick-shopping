@@ -288,7 +288,9 @@ export function OnboardingFlow({ accommodations, firstName, university: initialU
           <h1 className="font-display text-[28px] font-extrabold tracking-[-0.5px]">Share your location and I can find shops near you.</h1>
           <p className="text-sm text-foreground-secondary">Only used when you search. Nothing is tracked or stored.</p>
           <Button size="lg" onClick={() => { loc.useDevice(); }} loading={loc.status === "locating"}>Use my location</Button>
-          <Button size="lg" variant="secondary" onClick={() => { loc.useCampus(); void finish("CV4 7AL"); }} loading={saving}>Use Warwick campus</Button>
+          {isWarwickUniversityName(university) ? (
+            <Button size="lg" variant="secondary" onClick={() => { loc.useCampus(); void finish("CV4 7AL"); }} loading={saving}>Use Warwick campus</Button>
+          ) : null}
           <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void finish(postcode.trim().toUpperCase() || null); }}>
             <Input value={postcode} onChange={(e) => setPostcode(e.target.value)} placeholder="Enter a postcode" autoCapitalize="characters" aria-label="Postcode" />
             <Button type="submit" variant="ghost" loading={saving}>Go</Button>
