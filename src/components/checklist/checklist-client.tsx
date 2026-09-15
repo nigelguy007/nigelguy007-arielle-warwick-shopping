@@ -24,7 +24,7 @@ const FILTERS: Array<{ key: Filter; label: string }> = [
   { key: "all", label: "All" },
   { key: "needed", label: "Still needed" },
   { key: "essentials", label: "Essentials" },
-  { key: "buy_before", label: "Buy before Warwick" },
+  { key: "buy_before", label: "Buy before move-in" },
   { key: "take_from_home", label: "Take from home" },
   { key: "wait", label: "Wait" },
   { key: "bought", label: "Bought" },

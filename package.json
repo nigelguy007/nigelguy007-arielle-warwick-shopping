@@ -13,6 +13,7 @@
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
     "import:checklist": "tsx scripts/import-checklist.ts",
+    "scrape:accommodation": "tsx scripts/scrape-accommodation.ts",
     "icons": "node scripts/generate-icons.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },

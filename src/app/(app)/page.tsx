@@ -10,13 +10,16 @@ import { Icon, MISC_ICON_PATH } from "@/components/ui/icons";
 import { gbp } from "@/lib/utils";
 import { providerStatus } from "@/lib/env";
 import { countdownLabel } from "@/lib/checklist/countdown";
+import { isWarwickUniversityName } from "@/lib/university-match";
 
 export default async function HomePage() {
   const user = await requireUser();
   const d = await loadDashboard(user.id);
   const name = d.profile?.firstName || "there";
+  const university = d.profile?.university || null;
   const status = providerStatus();
-  const hallLabel = d.accommodation ? `${d.accommodation.name}` : "Warwick move-in";
+  const isWarwick = !university || isWarwickUniversityName(university);
+  const hallLabel = d.accommodation ? `${d.accommodation.name}` : university || "Move-in";
   const moveIn = countdownLabel(d.profile?.moveInDate ?? null);
   const sortedCount = d.summary.total - d.summary.stillNeeded;
   const alertLines: string[] = [];
@@ -34,7 +37,10 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <h1 className="font-display text-[28px] leading-none font-extrabold tracking-[-0.5px]">Hi {name}</h1>
+      <div className="flex flex-col gap-0.5">
+        <h1 className="font-display text-[28px] leading-none font-extrabold tracking-[-0.5px]">Hi {name}</h1>
+        {university ? <p className="text-sm text-foreground-secondary">{university}</p> : null}
+      </div>
 
       {moveIn ? <CountdownBanner label={moveIn} alertLines={alertLines} /> : (
         <Link href="/me" className="glass-card flex items-center justify-between px-[18px] py-3.5 text-sm font-semibold text-accent-ink">
@@ -81,22 +87,26 @@ export default async function HomePage() {
         <Link href="/checklist?filter=unpacked" className="glass-card flex items-center gap-2.5 p-3.5 text-sm font-semibold"><PackageOpen className="h-4.5 w-4.5 text-accent" /> Not packed</Link>
       </div>
 
-      <div className="font-display pt-1 text-xl font-extrabold">Warwick already provides</div>
-      <div className="glass-card p-4 text-sm">
-        {!d.accommodation ? (
-          <p className="text-foreground-secondary">Tell me your Warwick accommodation and I&apos;ll show what&apos;s already in your room and kitchen. <Link href="/me" className="font-semibold text-accent-ink">Set accommodation</Link></p>
-        ) : !d.accommodation.verifiedAt ? (
-          <p className="text-foreground-secondary">{d.accommodation.name}: details not verified yet. Check the <a className="font-semibold text-accent-ink" href={d.accommodation.officialUrl} target="_blank" rel="noopener noreferrer">official Warwick page</a> before buying bedding, pans or appliances.</p>
-        ) : d.accommodation.suppliedAppliances.length === 0 ? (
-          <p className="text-foreground-secondary">No supplied items recorded for {d.accommodation.name}.</p>
-        ) : (
-          <ul className="flex flex-wrap gap-2">
-            {d.accommodation.suppliedAppliances.map((a) => (
-              <li key={a} className="rounded-full px-3 py-1 font-medium text-success" style={{ background: "color-mix(in oklch, var(--success) 16%, transparent)" }}>{a}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {isWarwick ? (
+        <>
+          <div className="font-display pt-1 text-xl font-extrabold">Warwick already provides</div>
+          <div className="glass-card p-4 text-sm">
+            {!d.accommodation ? (
+              <p className="text-foreground-secondary">Tell me your Warwick accommodation and I&apos;ll show what&apos;s already in your room and kitchen. <Link href="/me" className="font-semibold text-accent-ink">Set accommodation</Link></p>
+            ) : !d.accommodation.verifiedAt ? (
+              <p className="text-foreground-secondary">{d.accommodation.name}: details not verified yet. Check the <a className="font-semibold text-accent-ink" href={d.accommodation.officialUrl} target="_blank" rel="noopener noreferrer">official Warwick page</a> before buying bedding, pans or appliances.</p>
+            ) : d.accommodation.suppliedAppliances.length === 0 ? (
+              <p className="text-foreground-secondary">No supplied items recorded for {d.accommodation.name}.</p>
+            ) : (
+              <ul className="flex flex-wrap gap-2">
+                {d.accommodation.suppliedAppliances.map((a) => (
+                  <li key={a} className="rounded-full px-3 py-1 font-medium text-success" style={{ background: "color-mix(in oklch, var(--success) 16%, transparent)" }}>{a}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      ) : null}
       <div className="h-6" />
     </main>
   );

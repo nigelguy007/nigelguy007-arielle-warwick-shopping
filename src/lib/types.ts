@@ -1,4 +1,5 @@
 // Shared domain types. Keep these framework-free so tests and scripts can import them.
+import { isWarwickUniversityName } from "./university-match";
 
 export const CHECKLIST_STATUSES = [
   "need",
@@ -33,7 +34,7 @@ export const TIMINGS = [
 export type Timing = (typeof TIMINGS)[number];
 
 export const TIMING_LABELS: Record<Timing, string> = {
-  buy_before: "Buy before Warwick",
+  buy_before: "Buy before move-in",
   take_from_home: "Take from home",
   wait_until_arrival: "Wait until arrival",
   do_not_buy_yet: "Do not buy yet",
@@ -96,10 +97,40 @@ export interface AccommodationProfile {
   notes: Record<string, unknown>;
 }
 
+/**
+ * A single scraped, sourced accommodation option for a real UK university
+ * (see supabase/migrations/0007_accommodation_listings.sql and
+ * scripts/scrape-accommodation.ts). Distinct from AccommodationProfile
+ * above, which is Warwick-specific hand-verified room data (bed size, hob
+ * type, etc). This only ever carries what was found on the university's
+ * own pricing/contract pages - a null field means "not stated there", not
+ * "assumed".
+ */
+export interface AccommodationListing {
+  id: string;
+  universityUkprn: string;
+  universityName: string;
+  accommodationName: string;
+  roomType: string | null;
+  weeklyPrice: number | null;
+  contractLength: string | null;
+  totalCost: number | null;
+  bathroomType: "ensuite" | "shared" | null;
+  cateringType: "catered" | "self-catered" | null;
+  address: string | null;
+  academicYear: string | null;
+  sourceUrl: string;
+  lastChecked: string;
+}
+
 export interface Profile {
   id: string;
   firstName: string;
   university: string;
+  /** Free-text town/city (e.g. "Coventry, UK"), captured in onboarding's first step. */
+  universityLocation: string | null;
+  /** e.g. "1st year", "Postgraduate" - free text so it fits any institution's labels. */
+  yearOfStudy: string | null;
   accommodationSlug: string | null;
   defaultPostcode: string | null;
   /** ISO date (YYYY-MM-DD) the student moves into halls. Drives the Home countdown. */
@@ -108,6 +139,10 @@ export interface Profile {
   notifyVoucherExpiry: boolean;
   notifyWeeklyDigest: boolean;
   onboardingComplete: boolean;
+  /** ISO timestamp the terms/privacy notice was accepted, server-stamped (never client-supplied) - GDPR consent proof. Null until step 3 of onboarding. */
+  termsAcceptedAt: string | null;
+  /** Which TERMS_VERSION (src/lib/legal/terms.ts) was accepted, so a later material change can require re-consent. */
+  termsVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -171,7 +206,7 @@ export interface LatLng {
 
 export interface LocationContext {
   label: string;
-  source: "device" | "postcode" | "campus";
+  source: "device" | "postcode" | "campus" | "unset";
   coords: LatLng | null;
   postcode: string | null;
 }
@@ -306,6 +341,24 @@ export const WARWICK_CAMPUS: LocationContext = {
   coords: { lat: 52.3793, lng: -1.5615 },
   postcode: "CV4 7AL",
 };
+
+/** No known location - we don't have a campus coordinate for every
+ * university, so unlike Warwick this is never presented as a shortcut;
+ * downstream code already treats `coords: null` as "ask for a location". */
+export const NO_LOCATION: LocationContext = {
+  label: "No location set",
+  source: "unset",
+  coords: null,
+  postcode: null,
+};
+
+/** The location to assume when a student hasn't shared one. Only Warwick
+ * gets a silent campus default - we don't have verified campus coordinates
+ * for other universities, and guessing one would violate the "never invent
+ * missing data" rule the accommodation/location data is held to elsewhere. */
+export function defaultLocationFor(university: string | null): LocationContext {
+  return isWarwickUniversityName(university ?? "") ? WARWICK_CAMPUS : NO_LOCATION;
+}
 
 // ---------- Parent sharing ----------
 

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Arielle's Warwick Move-In",
-    short_name: "Warwick Move-In",
-    description: "Checklist, prices, nearby shops and budget for moving into Warwick.",
+    name: "UniKit",
+    short_name: "UniKit",
+    description: "Checklist, prices, nearby shops and budget for moving into any UK university.",
     start_url: "/",
     scope: "/",
     display: "standalone",

@@ -12,5 +12,5 @@ export default async function OnboardingPage() {
   const profile = await store.getProfile(user.id);
   if (profile?.onboardingComplete) redirect("/");
   const accommodations = await store.listAccommodations();
-  return <OnboardingFlow accommodations={accommodations} firstName={profile?.firstName ?? ""} />;
+  return <OnboardingFlow accommodations={accommodations} firstName={profile?.firstName ?? ""} university={profile?.university ?? ""} />;
 }

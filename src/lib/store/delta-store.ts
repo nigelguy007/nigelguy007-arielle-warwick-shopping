@@ -71,7 +71,7 @@ export class DeltaStore implements DataStore {
 
   async getProfile(userId: string): Promise<Profile | null> {
     const now = new Date().toISOString();
-    return this.delta.profile ?? { id: userId, firstName: this.defaults.firstName, university: "University of Warwick", accommodationSlug: null, defaultPostcode: null, moveInDate: null, notifyPriceAlerts: true, notifyVoucherExpiry: true, notifyWeeklyDigest: false, onboardingComplete: false, createdAt: now, updatedAt: now };
+    return this.delta.profile ?? { id: userId, firstName: this.defaults.firstName, university: "University of Warwick", universityLocation: null, yearOfStudy: null, accommodationSlug: null, defaultPostcode: null, moveInDate: null, notifyPriceAlerts: true, notifyVoucherExpiry: true, notifyWeeklyDigest: false, onboardingComplete: false, termsAcceptedAt: null, termsVersion: null, createdAt: now, updatedAt: now };
   }
   async upsertProfile(userId: string, patch: Partial<Omit<Profile, "id" | "createdAt" | "updatedAt">>) {
     const existing = (await this.getProfile(userId)) as Profile;
@@ -79,6 +79,10 @@ export class DeltaStore implements DataStore {
       ...existing,
       firstName: patch.firstName ?? existing.firstName,
       university: patch.university ?? existing.university,
+      universityLocation: patch.universityLocation !== undefined ? patch.universityLocation : existing.universityLocation,
+      yearOfStudy: patch.yearOfStudy !== undefined ? patch.yearOfStudy : existing.yearOfStudy,
+      termsAcceptedAt: patch.termsAcceptedAt !== undefined ? patch.termsAcceptedAt : existing.termsAcceptedAt,
+      termsVersion: patch.termsVersion !== undefined ? patch.termsVersion : existing.termsVersion,
       accommodationSlug: patch.accommodationSlug !== undefined ? patch.accommodationSlug : existing.accommodationSlug,
       defaultPostcode: patch.defaultPostcode !== undefined ? patch.defaultPostcode : existing.defaultPostcode,
       moveInDate: patch.moveInDate !== undefined ? patch.moveInDate : existing.moveInDate,
@@ -147,6 +151,12 @@ export class DeltaStore implements DataStore {
   }
   async getAccommodation(slug: string) {
     return this.base.accommodations.find((a) => a.slug === slug) ?? null;
+  }
+  /** Cookie/demo mode has no scraped accommodation_listings dataset -
+   * always "no data yet" rather than fabricating or falling back to the
+   * Warwick seed data above. */
+  async listAccommodationListings() {
+    return [];
   }
 
   async getBudget() {

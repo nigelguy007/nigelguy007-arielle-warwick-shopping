@@ -4,12 +4,14 @@ import { LocateFixed, School, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { useLocationContext } from "@/lib/client/location";
+import { isWarwickUniversityName } from "@/lib/university-match";
 
 type Ctx = ReturnType<typeof useLocationContext>;
 
-export function LocationPicker({ ctx, compact }: { ctx: Ctx; compact?: boolean }) {
+export function LocationPicker({ ctx, compact, university = null }: { ctx: Ctx; compact?: boolean; university?: string | null }) {
   const [postcode, setPostcode] = useState("");
   const [showPostcode, setShowPostcode] = useState(false);
+  const showCampusShortcut = !university || isWarwickUniversityName(university);
   return (
     <div className="space-y-3">
       {ctx.location ? (
@@ -23,9 +25,11 @@ export function LocationPicker({ ctx, compact }: { ctx: Ctx; compact?: boolean }
         <Button variant="secondary" size="sm" className="flex-1" onClick={ctx.useDevice} loading={ctx.status === "locating"}>
           <LocateFixed className="h-4 w-4" /> Use my location
         </Button>
-        <Button variant="ghost" size="sm" className="flex-1" onClick={ctx.useCampus}>
-          <School className="h-4 w-4" /> Warwick campus
-        </Button>
+        {showCampusShortcut ? (
+          <Button variant="ghost" size="sm" className="flex-1" onClick={ctx.useCampus}>
+            <School className="h-4 w-4" /> Warwick campus
+          </Button>
+        ) : null}
         <Button variant="ghost" size="sm" className={compact ? "" : "col-span-2"} onClick={() => setShowPostcode((s) => !s)}>
           Enter a postcode
         </Button>

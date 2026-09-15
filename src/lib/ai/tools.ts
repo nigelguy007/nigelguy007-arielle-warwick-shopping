@@ -9,7 +9,7 @@ import { searchOffers } from "@/lib/providers/offer";
 import { calculateBasket, fitToBudget, formatGBP } from "@/lib/budget/math";
 import { canTransition, notPacked, stillNeeded } from "@/lib/checklist/status";
 import { ageLabel } from "@/lib/cache";
-import { CHECKLIST_STATUSES, WARWICK_CAMPUS, type LocationContext, type ProductSearchResult } from "@/lib/types";
+import { CHECKLIST_STATUSES, type LocationContext, type ProductSearchResult } from "@/lib/types";
 import type { StoreCategory } from "@/lib/providers/map/types";
 import type { ScoredProduct } from "@/lib/ranking/value-score";
 
@@ -21,8 +21,8 @@ function compactScored(s: ScoredProduct | null) {
   return { ...compact(s.product), score: Math.round(s.score * 100) / 100, warnings: s.warnings, reasons: s.reasons, nearbyStore: s.nearbyStore ? { name: s.nearbyStore.name, distanceKm: s.nearbyStore.distanceMeters ? Math.round(s.nearbyStore.distanceMeters / 100) / 10 : null, note: "store exists nearby; stock not confirmed" } : null, verifiedOffer: s.verifiedOffer ? { title: s.verifiedOffer.title, code: s.verifiedOffer.code, ends: s.verifiedOffer.endDate } : null };
 }
 
-export function buildAgentTools(userId: string, location: LocationContext | null) {
-  const loc = location ?? WARWICK_CAMPUS;
+export function buildAgentTools(userId: string, location: LocationContext) {
+  const loc = location;
   return {
     getChecklist: tool({
       description: "Full checklist with the user's status for each item, plus summary counts.",
@@ -86,7 +86,7 @@ export function buildAgentTools(userId: string, location: LocationContext | null
       },
     }),
     searchNearbyStores: tool({
-      description: "Physical shops near the user's location (or Warwick campus). Existence and opening hours only - never stock.",
+      description: "Physical shops near the user's location. Existence and opening hours only - never stock.",
       inputSchema: z.object({ retailer: z.string().optional(), category: z.enum(["supermarket", "pharmacy", "home_goods", "department_store", "electronics", "clothing", "shopping_centre"]).optional() }),
       execute: async ({ retailer, category }) => {
         if (!loc.coords) return { error: "Share your location or enter a postcode to see nearby shops." };

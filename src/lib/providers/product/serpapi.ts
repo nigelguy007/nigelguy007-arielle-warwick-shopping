@@ -60,10 +60,18 @@ export class SerpApiProductProvider implements ProductSearchProvider {
         gl: "uk",
         hl: "en",
         google_domain: "google.co.uk",
-        location: input.location?.label?.includes("Warwick") || !input.location ? "Coventry, England, United Kingdom" : input.location.label,
         num: String(Math.min(input.limit ?? 10, 20)),
         api_key: this.apiKey,
       });
+      // SerpApi wants a plain city name, not our full address-style labels
+      // (e.g. "University of Warwick, Coventry CV4 7AL"). With no real
+      // location - no coords and not Warwick's own default - omit the param
+      // rather than guessing a city; gl:"uk" already scopes results to the UK.
+      if (input.location?.label?.includes("Warwick")) {
+        params.set("location", "Coventry, England, United Kingdom");
+      } else if (input.location?.coords) {
+        params.set("location", input.location.label);
+      }
       if (input.maxPrice) params.set("tbs", `mr:1,price:1,ppr_max:${Math.ceil(input.maxPrice)}`);
       const res = await this.fetchImpl(`https://serpapi.com/search.json?${params.toString()}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(15_000) });
       if (!res.ok) throw new Error(`SerpApi responded ${res.status}`);

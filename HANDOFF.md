@@ -2,7 +2,8 @@
 
 ## What works (verified by tests and a manual run in local mode)
 
-- Onboarding (4 screens), home dashboard (still needed / bought / packed / budget left, Buy next, quick actions, "Warwick already provides").
+- Onboarding (7 screens: about you [university/location/name/year] → personalised ready screen → terms & GDPR consent → accommodation → budget → move-in date → location), home dashboard (still needed / bought / packed / budget left, Buy next, quick actions, "Warwick already provides", now also showing university under the greeting).
+- Terms & privacy notice at `/legal/terms` (public, no auth) - single source of truth in `src/lib/legal/terms.ts`, rendered both there and as a summary in onboarding's terms step. Consent is server-stamped (`profile.termsAcceptedAt` / `termsVersion`), never trusted from the client, and no profile data is written until it's accepted.
 - Full checklist with statuses Need / Already have / Buy / Bought / Packed / Wait until arrival / Do not buy, filters, category grouping, search, per-item page, offline queue for status changes.
 - Packing mode (`/checklist/pack`): items already have/bought grouped by a free-text "which box" label, large one-tap packed toggle, progress bar.
 - Budget + purchases; remaining budget updates when items are marked bought (from basket, item page, or agent). Purchases can have a receipt photo attached from the Me page.

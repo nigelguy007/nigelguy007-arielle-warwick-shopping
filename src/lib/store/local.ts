@@ -96,6 +96,8 @@ export class LocalStore implements DataStore, AdminStore {
       id: userId,
       firstName: patch.firstName ?? existing?.firstName ?? "",
       university: patch.university ?? existing?.university ?? "University of Warwick",
+      universityLocation: patch.universityLocation !== undefined ? patch.universityLocation : (existing?.universityLocation ?? null),
+      yearOfStudy: patch.yearOfStudy !== undefined ? patch.yearOfStudy : (existing?.yearOfStudy ?? null),
       accommodationSlug: patch.accommodationSlug !== undefined ? patch.accommodationSlug : (existing?.accommodationSlug ?? null),
       defaultPostcode: patch.defaultPostcode !== undefined ? patch.defaultPostcode : (existing?.defaultPostcode ?? null),
       moveInDate: patch.moveInDate !== undefined ? patch.moveInDate : (existing?.moveInDate ?? null),
@@ -103,6 +105,8 @@ export class LocalStore implements DataStore, AdminStore {
       notifyVoucherExpiry: patch.notifyVoucherExpiry ?? existing?.notifyVoucherExpiry ?? true,
       notifyWeeklyDigest: patch.notifyWeeklyDigest ?? existing?.notifyWeeklyDigest ?? false,
       onboardingComplete: patch.onboardingComplete ?? existing?.onboardingComplete ?? false,
+      termsAcceptedAt: patch.termsAcceptedAt !== undefined ? patch.termsAcceptedAt : (existing?.termsAcceptedAt ?? null),
+      termsVersion: patch.termsVersion !== undefined ? patch.termsVersion : (existing?.termsVersion ?? null),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
@@ -183,6 +187,12 @@ export class LocalStore implements DataStore, AdminStore {
   }
   async getAccommodation(slug: string) {
     return this.state.accommodations.find((a) => a.slug === slug) ?? null;
+  }
+  /** Local/demo mode has no scraped accommodation_listings dataset - always
+   * "no data yet" rather than fabricating or falling back to the Warwick
+   * seed data above. */
+  async listAccommodationListings() {
+    return [];
   }
 
   // ---- Budget ----

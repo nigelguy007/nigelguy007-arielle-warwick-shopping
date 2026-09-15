@@ -5,7 +5,7 @@ import { getStore } from "@/lib/store";
 import { compareProducts } from "@/lib/services/compare";
 import { optimiseBasket, type Alternative, type OptimiseMode } from "@/lib/services/basket-optimise";
 import { parseLocation } from "@/lib/services/location";
-import { WARWICK_CAMPUS } from "@/lib/types";
+import { defaultLocationFor } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 const MODES: OptimiseMode[] = ["cheapest", "best_value", "one_shop", "local_today", "online_only", "student_deals"];
@@ -18,7 +18,8 @@ export async function POST(req: Request) {
   try {
     const store = await getStore();
     const basket = await store.listBasket(user.id);
-    const location = body.location ? parseLocation(body.location) : WARWICK_CAMPUS;
+    const profile = await store.getProfile(user.id);
+    const location = (body.location ? parseLocation(body.location) : null) ?? defaultLocationFor(profile?.university ?? null);
     const alternatives: Alternative[] = [];
     let offers: Awaited<ReturnType<typeof compareProducts>>["offers"] = [];
     let stores: Awaited<ReturnType<typeof compareProducts>>["stores"] = [];

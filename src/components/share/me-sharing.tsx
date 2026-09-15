@@ -62,7 +62,7 @@ export function MeSharing({
   const share = async (url: string) => {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: "Warwick Move-In", text: "Follow my Warwick move-in checklist and budget:", url });
+        await navigator.share({ title: "UniKit", text: "Follow my move-in checklist and budget:", url });
         return;
       } catch {
         // Cancelled, or share isn't actually wired up here - fall back to copy.

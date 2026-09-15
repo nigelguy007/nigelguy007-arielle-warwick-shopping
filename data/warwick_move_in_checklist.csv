@@ -1,63 +1,63 @@
 Category,Item,Priority,When,Qty,Budget (£),Bought?,Packed?,Notes
-Bedding,Duvet,Essential,Buy before Warwick,1,25,No,No,Check bed size with hall first. Most Warwick rooms use a standard single but confirm before buying.
-Bedding,Duvet cover set,Essential,Buy before Warwick,2,20,No,No,Two sets so one can be washed. Must match confirmed bed size.
-Bedding,Fitted sheet,Essential,Buy before Warwick,2,10,No,No,Match bed size. Deep-pocket fitted sheets fit most mattresses.
-Bedding,Pillows,Essential,Buy before Warwick,2,12,No,No,Two standard pillows.
-Bedding,Pillowcases,Essential,Buy before Warwick,4,8,No,No,Usually included with duvet cover sets - check before buying separately.
-Bedding,Mattress protector,Recommended,Buy before Warwick,1,10,No,No,Match confirmed bed size.
+Bedding,Duvet,Essential,Buy before move-in,1,25,No,No,Check bed size with your hall first - don't assume a standard single, confirm before buying.
+Bedding,Duvet cover set,Essential,Buy before move-in,2,20,No,No,Two sets so one can be washed. Must match confirmed bed size.
+Bedding,Fitted sheet,Essential,Buy before move-in,2,10,No,No,Match bed size. Deep-pocket fitted sheets fit most mattresses.
+Bedding,Pillows,Essential,Buy before move-in,2,12,No,No,Two standard pillows.
+Bedding,Pillowcases,Essential,Buy before move-in,4,8,No,No,Usually included with duvet cover sets - check before buying separately.
+Bedding,Mattress protector,Recommended,Buy before move-in,1,10,No,No,Match confirmed bed size.
 Bedding,Throw or blanket,Optional,Wait until arrival,1,15,No,No,Nice to have. Wait and see how warm the room is.
-Bathroom,Bath towels,Essential,Buy before Warwick,2,16,No,No,Two large towels.
-Bathroom,Hand towels,Recommended,Buy before Warwick,2,6,No,No,
-Bathroom,Shower caddy,Recommended,Buy before Warwick,1,6,No,No,Only needed for shared bathrooms. Skip if en-suite is confirmed.
-Bathroom,Flip flops for showers,Optional,Buy before Warwick,1,5,No,No,Only for shared bathrooms.
+Bathroom,Bath towels,Essential,Buy before move-in,2,16,No,No,Two large towels.
+Bathroom,Hand towels,Recommended,Buy before move-in,2,6,No,No,
+Bathroom,Shower caddy,Recommended,Buy before move-in,1,6,No,No,Only needed for shared bathrooms. Skip if en-suite is confirmed.
+Bathroom,Flip flops for showers,Optional,Buy before move-in,1,5,No,No,Only for shared bathrooms.
 Bathroom,Toiletries starter kit,Essential,Take from home,1,15,No,No,Shampoo conditioner shower gel toothpaste toothbrush deodorant.
-Bathroom,Toilet roll,Essential,Buy before Warwick,1,4,No,No,First week supply. Halls usually do not provide it.
+Bathroom,Toilet roll,Essential,Buy before move-in,1,4,No,No,First week supply. Halls usually do not provide it.
 Bathroom,Bath mat,Optional,Wait until arrival,1,8,No,No,Check if the en-suite already has one.
-Kitchen,Frying pan,Essential,Buy before Warwick,1,12,No,No,Must match hob type. Induction hobs need induction-compatible pans.
-Kitchen,Saucepan with lid,Essential,Buy before Warwick,1,12,No,No,Must match hob type. Check hall kitchen details.
-Kitchen,Baking tray,Recommended,Buy before Warwick,1,5,No,No,
-Kitchen,Plates,Essential,Buy before Warwick,2,6,No,No,Two dinner plates.
-Kitchen,Bowls,Essential,Buy before Warwick,2,5,No,No,
-Kitchen,Mugs,Essential,Buy before Warwick,2,4,No,No,
-Kitchen,Glasses,Recommended,Buy before Warwick,2,4,No,No,
-Kitchen,Cutlery set,Essential,Buy before Warwick,1,6,No,No,Knife fork spoon teaspoon.
-Kitchen,Sharp knife,Essential,Buy before Warwick,1,6,No,No,One good chef's knife.
-Kitchen,Chopping board,Essential,Buy before Warwick,1,4,No,No,
-Kitchen,Wooden spoon and spatula,Recommended,Buy before Warwick,1,4,No,No,
-Kitchen,Tin opener,Recommended,Buy before Warwick,1,3,No,No,
+Kitchen,Frying pan,Essential,Buy before move-in,1,12,No,No,Must match hob type. Induction hobs need induction-compatible pans.
+Kitchen,Saucepan with lid,Essential,Buy before move-in,1,12,No,No,Must match hob type. Check hall kitchen details.
+Kitchen,Baking tray,Recommended,Buy before move-in,1,5,No,No,
+Kitchen,Plates,Essential,Buy before move-in,2,6,No,No,Two dinner plates.
+Kitchen,Bowls,Essential,Buy before move-in,2,5,No,No,
+Kitchen,Mugs,Essential,Buy before move-in,2,4,No,No,
+Kitchen,Glasses,Recommended,Buy before move-in,2,4,No,No,
+Kitchen,Cutlery set,Essential,Buy before move-in,1,6,No,No,Knife fork spoon teaspoon.
+Kitchen,Sharp knife,Essential,Buy before move-in,1,6,No,No,One good chef's knife.
+Kitchen,Chopping board,Essential,Buy before move-in,1,4,No,No,
+Kitchen,Wooden spoon and spatula,Recommended,Buy before move-in,1,4,No,No,
+Kitchen,Tin opener,Recommended,Buy before move-in,1,3,No,No,
 Kitchen,Cheese grater,Optional,Wait until arrival,1,3,No,No,
-Kitchen,Food storage containers,Recommended,Buy before Warwick,1,8,No,No,Set of 3-5 with lids for leftovers.
-Kitchen,Tea towels,Essential,Buy before Warwick,2,4,No,No,
-Kitchen,Washing up sponges and liquid,Essential,Buy before Warwick,1,3,No,No,
-Kitchen,Kettle,Essential,Do not buy yet,1,15,No,No,Most Warwick kitchens supply a kettle. Check the hall page before buying.
+Kitchen,Food storage containers,Recommended,Buy before move-in,1,8,No,No,Set of 3-5 with lids for leftovers.
+Kitchen,Tea towels,Essential,Buy before move-in,2,4,No,No,
+Kitchen,Washing up sponges and liquid,Essential,Buy before move-in,1,3,No,No,
+Kitchen,Kettle,Essential,Do not buy yet,1,15,No,No,Often supplied in shared kitchens. Check your hall page before buying.
 Kitchen,Toaster,Recommended,Do not buy yet,1,15,No,No,Often supplied in shared kitchens. Check first.
-Kitchen,Microwave,Recommended,Do not buy yet,1,50,No,No,Supplied in Warwick shared kitchens. Do not buy.
+Kitchen,Microwave,Recommended,Do not buy yet,1,50,No,No,Often supplied in shared kitchens. Check first.
 Kitchen,Bottle opener and corkscrew,Optional,Wait until arrival,1,3,No,No,
-Laundry,Laundry basket or bag,Essential,Buy before Warwick,1,6,No,No,Collapsible is easiest to carry to the launderette.
-Laundry,Washing detergent pods,Essential,Buy before Warwick,1,6,No,No,
+Laundry,Laundry basket or bag,Essential,Buy before move-in,1,6,No,No,Collapsible is easiest to carry to the launderette.
+Laundry,Washing detergent pods,Essential,Buy before move-in,1,6,No,No,
 Laundry,Clothes airer,Recommended,Wait until arrival,1,12,No,No,Check room space first. Some halls provide drying rooms.
-Laundry,Coat hangers,Essential,Buy before Warwick,20,0.25,No,No,Pack of 20 (Budget is per-hanger; total pack cost ~£5).
+Laundry,Coat hangers,Essential,Buy before move-in,20,0.25,No,No,Pack of 20 (Budget is per-hanger; total pack cost ~£5).
 Laundry,Iron,Optional,Do not buy yet,1,15,No,No,Often available in halls laundry rooms. Check first.
-Electronics,Extension lead with surge protection,Essential,Buy before Warwick,1,10,No,No,Must be UK 3-pin and surge protected. Check hall electrical rules.
+Electronics,Extension lead with surge protection,Essential,Buy before move-in,1,10,No,No,Must be UK 3-pin and surge protected. Check hall electrical rules.
 Electronics,Phone charger and cable,Essential,Take from home,1,0,No,No,
 Electronics,Laptop and charger,Essential,Take from home,1,0,No,No,
 Electronics,Headphones,Recommended,Take from home,1,0,No,No,
 Electronics,Desk lamp,Recommended,Wait until arrival,1,12,No,No,Check whether the desk already has a lamp.
-Electronics,Ethernet cable,Optional,Buy before Warwick,1,4,No,No,Useful if Wi-Fi is weak in the room.
+Electronics,Ethernet cable,Optional,Buy before move-in,1,4,No,No,Useful if Wi-Fi is weak in the room.
 Electronics,Portable power bank,Optional,Take from home,1,0,No,No,
-Study,Notebooks and pens,Essential,Buy before Warwick,1,8,No,No,
+Study,Notebooks and pens,Essential,Buy before move-in,1,8,No,No,
 Study,Backpack,Essential,Take from home,1,0,No,No,
-Study,Sticky notes and highlighters,Optional,Buy before Warwick,1,4,No,No,
+Study,Sticky notes and highlighters,Optional,Buy before move-in,1,4,No,No,
 Study,Desk organiser,Optional,Wait until arrival,1,6,No,No,
 Study,Noticeboard or wall-safe hooks,Optional,Wait until arrival,1,5,No,No,Check hall rules on wall fixings first.
 Clothing,Warm coat,Essential,Take from home,1,0,No,No,
-Clothing,Waterproof jacket,Essential,Take from home,1,0,No,No,Coventry rain is real.
+Clothing,Waterproof jacket,Essential,Take from home,1,0,No,No,UK weather is unpredictable - worth having even if it's sunny when you pack.
 Clothing,Comfortable trainers,Essential,Take from home,1,0,No,No,
 Clothing,Slippers,Recommended,Take from home,1,0,No,No,
 Clothing,Smart outfit,Recommended,Take from home,1,0,No,No,For events and presentations.
 Clothing,Dressing gown,Optional,Take from home,1,0,No,No,
-Health,First aid kit,Recommended,Buy before Warwick,1,8,No,No,Plasters painkillers antiseptic.
-Health,Paracetamol and cold remedies,Recommended,Buy before Warwick,1,5,No,No,
+Health,First aid kit,Recommended,Buy before move-in,1,8,No,No,Plasters painkillers antiseptic.
+Health,Paracetamol and cold remedies,Recommended,Buy before move-in,1,5,No,No,
 Health,Prescription medication,Essential,Take from home,1,0,No,No,Bring at least a month's supply and register with the campus GP.
 Health,Reusable water bottle,Essential,Take from home,1,0,No,No,
 Admin,Passport or ID,Essential,Take from home,1,0,No,No,Needed for enrolment.
@@ -65,14 +65,14 @@ Admin,Accommodation contract and confirmation,Essential,Take from home,1,0,No,No
 Admin,Bank card and details,Essential,Take from home,1,0,No,No,
 Admin,NHS number and GP details,Essential,Take from home,1,0,No,No,
 Admin,Student ID photo,Recommended,Take from home,1,0,No,No,Upload before arrival if the university asks for it.
-Room,Bin bags,Recommended,Buy before Warwick,1,3,No,No,
+Room,Bin bags,Recommended,Buy before move-in,1,3,No,No,
 Room,Small bin,Optional,Wait until arrival,1,5,No,No,Most rooms include a bin. Check first.
-Room,Door stop,Optional,Buy before Warwick,1,2,No,No,Handy for meeting flatmates on move-in day.
+Room,Door stop,Optional,Buy before move-in,1,2,No,No,Handy for meeting flatmates on move-in day.
 Room,Photos and small decorations,Optional,Take from home,1,0,No,No,Use removable hooks. No nails or blu-tack marks.
 Room,Mirror,Optional,Wait until arrival,1,10,No,No,Most rooms have one. Check first.
 Room,Storage boxes under bed,Optional,Wait until arrival,2,10,No,No,Measure the space under the bed first.
-Cleaning,Multi-surface cleaner and cloths,Recommended,Buy before Warwick,1,4,No,No,
+Cleaning,Multi-surface cleaner and cloths,Recommended,Buy before move-in,1,4,No,No,
 Cleaning,Dustpan and brush,Optional,Wait until arrival,1,4,No,No,Shared kitchens usually have one.
-Cleaning,Anti-bacterial wipes,Recommended,Buy before Warwick,1,2,No,No,
-Food,First-night food and snacks,Recommended,Buy before Warwick,1,10,No,No,Something easy for the first evening.
-Food,Tea or coffee and basics,Optional,Buy before Warwick,1,6,No,No,Tea bags coffee sugar long-life milk.
+Cleaning,Anti-bacterial wipes,Recommended,Buy before move-in,1,2,No,No,
+Food,First-night food and snacks,Recommended,Buy before move-in,1,10,No,No,Something easy for the first evening.
+Food,Tea or coffee and basics,Optional,Buy before move-in,1,6,No,No,Tea bags coffee sugar long-life milk.

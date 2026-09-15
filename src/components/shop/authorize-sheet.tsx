@@ -22,7 +22,7 @@ export function AuthorizeSheet({ open, retailer, method, onCancel, onAllow, conn
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-[17px] font-extrabold text-accent-ink">{retailer.charAt(0).toUpperCase()}</div>
         <div>
           <div className="text-base font-extrabold">{retailer}</div>
-          <div className="text-xs text-muted">wants to share prices with Warwick Move-In</div>
+          <div className="text-xs text-muted">wants to share prices with UniKit</div>
         </div>
       </div>
       <div className="flex flex-col gap-2.5 py-1">

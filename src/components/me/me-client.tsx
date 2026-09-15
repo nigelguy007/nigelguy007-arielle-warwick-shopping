@@ -18,6 +18,7 @@ import { countdownLabel } from "@/lib/checklist/countdown";
 import { MeSharing } from "@/components/share/me-sharing";
 import type { AccommodationProfile, Profile, Purchase, SharedAccess, SharedAccessView, ShareInvite, StoreConnection } from "@/lib/types";
 import type { BudgetSummary } from "@/lib/budget/math";
+import { isWarwickUniversityName } from "@/lib/university-match";
 
 const PRESETS = [100, 200, 300, 500];
 // Matches the default retailer set on Shop (store-connections-panel.tsx) -
@@ -84,6 +85,7 @@ export function MeClient({
   const [notifyOverrides, setNotifyOverrides] = useState<Partial<Record<NotifyKey, boolean>>>({});
   const [connectedCount, setConnectedCount] = useState<number | null>(null);
   const acc = accommodations.find((a) => a.slug === profile.accommodationSlug) ?? null;
+  const isWarwick = !profile.university || isWarwickUniversityName(profile.university);
 
   useEffect(() => {
     api<{ connections: StoreConnection[] }>("/api/stores")
@@ -136,7 +138,7 @@ export function MeClient({
   };
 
   const initial = (profile.firstName.trim().charAt(0) || "?").toUpperCase();
-  const subtitle = [acc?.name, countdownLabel(profile.moveInDate)].filter(Boolean).join(" · ") || "Warwick move-in";
+  const subtitle = [acc?.name, countdownLabel(profile.moveInDate)].filter(Boolean).join(" · ") || profile.university || "Move-in";
 
   return (
     <div className="px-4">
@@ -210,28 +212,32 @@ export function MeClient({
         </form>
       </div>
 
-      <SectionTitle>Warwick accommodation</SectionTitle>
-      <div className="card space-y-3 p-4">
-        <select className="h-12 w-full rounded-2xl border border-border bg-card px-3 text-base" value={profile.accommodationSlug ?? ""} onChange={(e) => save({ accommodationSlug: e.target.value || null }, "acc")} aria-label="Accommodation">
-          <option value="">I don&apos;t know yet</option>
-          {accommodations.map((a) => (
-            <option key={a.slug} value={a.slug}>{a.name}</option>
-          ))}
-        </select>
-        {acc ? (
-          <div className="space-y-1 text-sm">
-            <p className="flex items-center gap-2">{acc.verifiedAt ? <Badge tone="success">Verified {new Date(acc.verifiedAt).toLocaleDateString("en-GB")}</Badge> : <Badge tone="warn">Not verified</Badge>} <a className="font-semibold text-accent-ink" href={acc.officialUrl} target="_blank" rel="noopener noreferrer">Official page</a></p>
-            <p>Bed size: <b>{acc.verifiedAt && acc.bedSize ? acc.bedSize.replace("_", " ") : "Not confirmed"}</b></p>
-            <p>Bathroom: <b>{acc.verifiedAt && acc.ensuite !== null ? (acc.ensuite ? "En-suite" : "Shared") : "Not confirmed"}</b></p>
-            <p>Hob: <b>{acc.verifiedAt && acc.hobType ? acc.hobType.replace("_", " ") : "Not confirmed"}</b></p>
-            <p>Supplied: <b>{acc.verifiedAt && acc.suppliedAppliances.length ? acc.suppliedAppliances.join(", ") : "Not confirmed"}</b></p>
+      {isWarwick ? (
+        <>
+          <SectionTitle>Warwick accommodation</SectionTitle>
+          <div className="card space-y-3 p-4">
+            <select className="h-12 w-full rounded-2xl border border-border bg-card px-3 text-base" value={profile.accommodationSlug ?? ""} onChange={(e) => save({ accommodationSlug: e.target.value || null }, "acc")} aria-label="Accommodation">
+              <option value="">I don&apos;t know yet</option>
+              {accommodations.map((a) => (
+                <option key={a.slug} value={a.slug}>{a.name}</option>
+              ))}
+            </select>
+            {acc ? (
+              <div className="space-y-1 text-sm">
+                <p className="flex items-center gap-2">{acc.verifiedAt ? <Badge tone="success">Verified {new Date(acc.verifiedAt).toLocaleDateString("en-GB")}</Badge> : <Badge tone="warn">Not verified</Badge>} <a className="font-semibold text-accent-ink" href={acc.officialUrl} target="_blank" rel="noopener noreferrer">Official page</a></p>
+                <p>Bed size: <b>{acc.verifiedAt && acc.bedSize ? acc.bedSize.replace("_", " ") : "Not confirmed"}</b></p>
+                <p>Bathroom: <b>{acc.verifiedAt && acc.ensuite !== null ? (acc.ensuite ? "En-suite" : "Shared") : "Not confirmed"}</b></p>
+                <p>Hob: <b>{acc.verifiedAt && acc.hobType ? acc.hobType.replace("_", " ") : "Not confirmed"}</b></p>
+                <p>Supplied: <b>{acc.verifiedAt && acc.suppliedAppliances.length ? acc.suppliedAppliances.join(", ") : "Not confirmed"}</b></p>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-      </div>
+        </>
+      ) : null}
 
       <SectionTitle>Default postcode</SectionTitle>
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); void save({ defaultPostcode: String(f.get("pc") ?? "").toUpperCase() || null }, "pc"); }}>
-        <Input name="pc" defaultValue={profile.defaultPostcode ?? ""} placeholder="e.g. CV4 7AL" autoCapitalize="characters" aria-label="Default postcode" />
+        <Input name="pc" defaultValue={profile.defaultPostcode ?? ""} placeholder="e.g. postcode" autoCapitalize="characters" aria-label="Default postcode" />
         <Button type="submit" loading={saving === "pc"}>Save</Button>
       </form>
 

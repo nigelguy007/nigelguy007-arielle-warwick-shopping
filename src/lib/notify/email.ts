@@ -7,7 +7,7 @@ function escapeHtml(text: string): string {
 
 function renderHtml(notifications: AlertNotification[]): string {
   const items = notifications.map((n) => `<li><strong>${escapeHtml(n.title)}</strong><br/>${escapeHtml(n.body)}</li>`).join("");
-  return `<p>Here's what changed on your Warwick move-in checklist:</p><ul>${items}</ul><p style="color:#666;font-size:12px">Automated alert - prices and offers can change again by the time you check.</p>`;
+  return `<p>Here's what changed on your move-in checklist:</p><ul>${items}</ul><p style="color:#666;font-size:12px">Automated alert - prices and offers can change again by the time you check.</p>`;
 }
 
 /**
@@ -29,7 +29,7 @@ export class ResendEmailNotifier implements Notifier {
     if (notifications.length === 0) return { channel: "resend", sent: false, reason: "nothing to send" };
     if (!target.email) return { channel: "resend", sent: false, reason: "no email on file for this user" };
     return timed("resend", "send", async () => {
-      const subject = notifications.length === 1 ? notifications[0].title : `${notifications.length} shopping alerts for your Warwick move-in`;
+      const subject = notifications.length === 1 ? notifications[0].title : `${notifications.length} shopping alerts for your move-in checklist`;
       const res = await this.fetchImpl("https://api.resend.com/emails", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${this.apiKey}` },

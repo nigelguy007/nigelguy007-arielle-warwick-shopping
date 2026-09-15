@@ -16,7 +16,11 @@ import { STORE_CATEGORY_LABELS, googleMapsDirectionsUrl, type StoreCategory } fr
 import type { NearbyStoresResponse } from "@/lib/providers/map";
 import { RETAILERS } from "@/lib/types";
 
-export function MapClient({ mapsBrowserKey, basketRetailers }: { mapsBrowserKey: string | null; basketRetailers: string[] }) {
+// Never actually rendered without real coords (see `showMap` below, which requires
+// loc.location?.coords) - this is only a type-safe placeholder, not a location default.
+const UK_CENTER = { lat: 54.0, lng: -2.0 };
+
+export function MapClient({ mapsBrowserKey, basketRetailers, university }: { mapsBrowserKey: string | null; basketRetailers: string[]; university: string | null }) {
   const params = useSearchParams();
   const loc = useLocationContext();
   const [category, setCategory] = useState<StoreCategory | null>(null);
@@ -31,7 +35,7 @@ export function MapClient({ mapsBrowserKey, basketRetailers }: { mapsBrowserKey:
   );
 
   const stores = useMemo(() => data?.stores ?? [], [data]);
-  const center = useMemo(() => loc.location?.coords ?? { lat: 52.3793, lng: -1.5615 }, [loc.location]);
+  const center = useMemo(() => loc.location?.coords ?? UK_CENTER, [loc.location]);
   const tripStores = useMemo(() => {
     const keys = new Set(basketRetailers.map((r) => r.toLowerCase()));
     const seen = new Set<string>();
@@ -60,7 +64,7 @@ export function MapClient({ mapsBrowserKey, basketRetailers }: { mapsBrowserKey:
 
       <div className="flex flex-col gap-3 px-4">
         <div className="glass-card p-4">
-          <LocationPicker ctx={loc} />
+          <LocationPicker ctx={loc} university={university} />
         </div>
         <ChipRow>
           <Chip active={!category && !retailer} onClick={() => { setCategory(null); setRetailer(null); }}>All shops</Chip>
