@@ -1,4 +1,5 @@
 // Shared domain types. Keep these framework-free so tests and scripts can import them.
+import { isWarwickUniversityName } from "./university-match";
 
 export const CHECKLIST_STATUSES = [
   "need",
@@ -33,7 +34,7 @@ export const TIMINGS = [
 export type Timing = (typeof TIMINGS)[number];
 
 export const TIMING_LABELS: Record<Timing, string> = {
-  buy_before: "Buy before Warwick",
+  buy_before: "Buy before move-in",
   take_from_home: "Take from home",
   wait_until_arrival: "Wait until arrival",
   do_not_buy_yet: "Do not buy yet",
@@ -205,7 +206,7 @@ export interface LatLng {
 
 export interface LocationContext {
   label: string;
-  source: "device" | "postcode" | "campus";
+  source: "device" | "postcode" | "campus" | "unset";
   coords: LatLng | null;
   postcode: string | null;
 }
@@ -340,6 +341,24 @@ export const WARWICK_CAMPUS: LocationContext = {
   coords: { lat: 52.3793, lng: -1.5615 },
   postcode: "CV4 7AL",
 };
+
+/** No known location - we don't have a campus coordinate for every
+ * university, so unlike Warwick this is never presented as a shortcut;
+ * downstream code already treats `coords: null` as "ask for a location". */
+export const NO_LOCATION: LocationContext = {
+  label: "No location set",
+  source: "unset",
+  coords: null,
+  postcode: null,
+};
+
+/** The location to assume when a student hasn't shared one. Only Warwick
+ * gets a silent campus default - we don't have verified campus coordinates
+ * for other universities, and guessing one would violate the "never invent
+ * missing data" rule the accommodation/location data is held to elsewhere. */
+export function defaultLocationFor(university: string | null): LocationContext {
+  return isWarwickUniversityName(university ?? "") ? WARWICK_CAMPUS : NO_LOCATION;
+}
 
 // ---------- Parent sharing ----------
 

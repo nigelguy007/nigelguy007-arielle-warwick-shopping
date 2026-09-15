@@ -4,10 +4,12 @@ import { requireUserOr401 } from "@/lib/auth";
 import { badRequest } from "@/lib/api";
 import { env } from "@/lib/env";
 import { log } from "@/lib/logger";
+import { getStore } from "@/lib/store";
 import { buildAgentTools } from "@/lib/ai/tools";
-import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
+import { buildSystemPrompt } from "@/lib/ai/system-prompt";
 import { fallbackAnswer } from "@/lib/ai/fallback";
 import { parseLocation } from "@/lib/services/location";
+import { defaultLocationFor } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -34,7 +36,10 @@ export async function POST(req: Request) {
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return badRequest("Invalid chat request");
   const messages = parsed.data.messages as UIMessage[];
-  const location = parsed.data.location ? parseLocation(parsed.data.location) : null;
+  const shared = parsed.data.location ? parseLocation(parsed.data.location) : null;
+  const store = await getStore();
+  const profile = await store.getProfile(user.id);
+  const location = shared ?? defaultLocationFor(profile?.university ?? null);
 
   if (!env.aiConfigured) {
     // No model configured: answer the simple, common requests with rules over the same tools.
@@ -53,7 +58,7 @@ export async function POST(req: Request) {
   const tools = buildAgentTools(user.id, location);
   const result = streamText({
     model: env.aiModel,
-    system: SYSTEM_PROMPT + (location ? `\n\nThe user's current location context is: ${location.label}.` : "\n\nNo location shared yet; default to the Warwick campus and offer to use their location."),
+    system: buildSystemPrompt(profile?.university ?? null) + (shared ? `\n\nThe user's current location context is: ${location.label}.` : location.coords ? `\n\nNo location shared yet; default to ${location.label} and offer to use their location.` : "\n\nNo location shared and none on file; ask the user to share their location or a postcode before answering anything location-based."),
     messages: await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true }),
     tools,
     stopWhen: stepCountIs(8),

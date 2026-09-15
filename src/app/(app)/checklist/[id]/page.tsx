@@ -52,7 +52,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         <>
           <SectionTitle action={<Link href={`/shop?itemId=${item.id}&q=${encodeURIComponent(item.item)}`} className="text-sm font-semibold text-accent-ink">Open in Shop</Link>}>Where to buy</SectionTitle>
           {warning && !warning.startsWith("Induction") ? <p className="mb-3 rounded-2xl bg-warn-soft px-4 py-3 text-sm font-medium text-warn">{warning}</p> : null}
-          <CompareView itemId={item.id} />
+          <CompareView itemId={item.id} university={profile?.university ?? null} />
         </>
       ) : (
         <p className="pt-4 text-sm text-muted">Marked as {STATUS_LABELS[item.status].toLowerCase()}, so there is nothing to buy.</p>

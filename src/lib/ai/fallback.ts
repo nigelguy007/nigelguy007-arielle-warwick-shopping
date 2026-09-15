@@ -7,16 +7,16 @@ import { fitToBudget, formatGBP } from "@/lib/budget/math";
 import { notPacked, stillNeeded } from "@/lib/checklist/status";
 import { getStore } from "@/lib/store";
 import { ageLabel } from "@/lib/cache";
-import { WARWICK_CAMPUS, type LocationContext } from "@/lib/types";
+import type { LocationContext } from "@/lib/types";
 
 /**
  * Rule-based answers for the handful of simple requests the spec lists, used when
  * no AI model key is configured. Every answer comes from the same tools/services
  * the model would call, so nothing is invented.
  */
-export async function fallbackAnswer(userId: string, text: string, location: LocationContext | null): Promise<string> {
+export async function fallbackAnswer(userId: string, text: string, location: LocationContext): Promise<string> {
   const q = text.trim().toLowerCase();
-  const loc = location ?? WARWICK_CAMPUS;
+  const loc = location;
   const d = await loadDashboard(userId);
 
   const money = q.match(/£\s?(\d+(?:\.\d{1,2})?)|(\d+(?:\.\d{1,2})?)\s?(?:pounds|quid)/);

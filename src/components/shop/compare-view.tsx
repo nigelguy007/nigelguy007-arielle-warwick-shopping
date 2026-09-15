@@ -83,7 +83,7 @@ function PriceRow({ pick, label, best, compact, onAdd, onBought, onNearby, addin
   );
 }
 
-export function CompareView({ query, itemId, onNearby, showOffers = true }: { query?: string; itemId?: string; onNearby?: (retailer: string) => void; showOffers?: boolean }) {
+export function CompareView({ query, itemId, onNearby, showOffers = true, university = null }: { query?: string; itemId?: string; onNearby?: (retailer: string) => void; showOffers?: boolean; university?: string | null }) {
   const router = useRouter();
   const loc = useLocationContext();
   const [adding, setAdding] = useState<string | null>(null);
@@ -175,7 +175,7 @@ export function CompareView({ query, itemId, onNearby, showOffers = true }: { qu
       {data && !loc.location && (
         <div className="card p-4">
           <SectionTitle>Nearby options</SectionTitle>
-          <LocationPicker ctx={loc} compact />
+          <LocationPicker ctx={loc} compact university={university} />
         </div>
       )}
       {showOffers && data && data.offers.length > 0 ? (

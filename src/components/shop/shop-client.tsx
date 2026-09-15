@@ -15,7 +15,7 @@ import type { BasketTotals, BudgetSummary } from "@/lib/budget/math";
 
 const SUGGESTIONS = ["Duvet", "Towels", "Extension lead", "Frying pan", "Pillows", "Laundry basket", "Cutlery set"];
 
-export function ShopClient({ basket, totals, budget }: { basket: BasketItem[]; totals: BasketTotals; budget: BudgetSummary }) {
+export function ShopClient({ basket, totals, budget, university = null }: { basket: BasketItem[]; totals: BasketTotals; budget: BudgetSummary; university?: string | null }) {
   const router = useRouter();
   const params = useSearchParams();
   const [text, setText] = useState(params.get("q") ?? "");
@@ -81,7 +81,7 @@ export function ShopClient({ basket, totals, budget }: { basket: BasketItem[]; t
       {query || itemId ? (
         <>
           <SectionTitle>{query ? `Results for “${query}”` : "Results"}</SectionTitle>
-          <CompareView key={`${query}:${itemId ?? ""}`} query={query || undefined} itemId={itemId} onNearby={(retailer) => router.push(`/map?retailer=${encodeURIComponent(retailer)}&q=${encodeURIComponent(query)}`)} />
+          <CompareView key={`${query}:${itemId ?? ""}`} query={query || undefined} itemId={itemId} university={university} onNearby={(retailer) => router.push(`/map?retailer=${encodeURIComponent(retailer)}&q=${encodeURIComponent(query)}`)} />
         </>
       ) : null}
 

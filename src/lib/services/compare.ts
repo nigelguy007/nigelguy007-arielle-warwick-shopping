@@ -6,7 +6,7 @@ import { nearbyStores } from "@/lib/providers/map";
 import { pickRecommendations, type Recommendations } from "@/lib/ranking/value-score";
 import { accommodationWarningFor, categoryOfItem } from "@/lib/ranking/compatibility";
 import type { AccommodationProfile, ChecklistView, LocationContext, OfferResult, ProductSearchResult, StoreResult } from "@/lib/types";
-import { WARWICK_CAMPUS } from "@/lib/types";
+import { defaultLocationFor } from "@/lib/types";
 import { findItemByName } from "@/lib/services/dashboard";
 
 export interface CompareResult {
@@ -36,7 +36,7 @@ export async function compareProducts(
   // A free-text search that names a checklist item is linked to it so "Mark bought" updates the list.
   if (!item && opts.query?.trim()) item = findItemByName(await store.listUserChecklist(userId), opts.query.trim());
   const query = (opts.query ?? item?.item ?? "").trim();
-  const location = opts.location ?? WARWICK_CAMPUS;
+  const location = opts.location ?? defaultLocationFor(profile?.university ?? null);
   const itemLike = item ?? { item: query, category: "" };
   const warning = accommodationWarningFor(itemLike, accommodation);
   const kind = categoryOfItem(itemLike);

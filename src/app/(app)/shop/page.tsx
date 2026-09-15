@@ -14,7 +14,7 @@ export default async function ShopPage() {
     <main>
       <PageHeader title="Shop" subtitle={d.basket.length ? `${d.basketTotals.retailerCount} shops · estimated ${gbp(d.basketTotals.estimatedTotal)}` : "Compare prices, then add to your basket"} />
       <Suspense>
-        <ShopClient basket={d.basket} totals={d.basketTotals} budget={d.budgetSummary} />
+        <ShopClient basket={d.basket} totals={d.basketTotals} budget={d.budgetSummary} university={d.profile?.university ?? null} />
       </Suspense>
     </main>
   );
