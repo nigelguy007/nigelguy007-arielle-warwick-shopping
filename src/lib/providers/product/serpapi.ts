@@ -22,6 +22,17 @@ interface SerpShoppingResult {
   second_hand_condition?: string;
 }
 
+/** Deterministic, non-cryptographic string hash (djb2) - stable across
+ * requests, unlike array position, so re-searching the same query gives
+ * repeated listings the same id (dedupes/merges basket quantity correctly)
+ * without colliding two different listings that happen to land at the same
+ * result index on different searches. */
+function stableHash(input: string): string {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) hash = (hash * 33) ^ input.charCodeAt(i);
+  return (hash >>> 0).toString(36);
+}
+
 function parseDelivery(text: string | undefined): { price?: number; days?: number } {
   if (!text) return {};
   const t = text.toLowerCase();
@@ -80,13 +91,23 @@ export class SerpApiProductProvider implements ProductSearchProvider {
       const now = new Date().toISOString();
       const results = (json.shopping_results ?? [])
         .filter((r) => typeof r.extracted_price === "number" && r.title)
-        .map((r, i): ProductSearchResult => {
+        .map((r): ProductSearchResult => {
           const delivery = parseDelivery(r.delivery);
           const price = r.extracted_price as number;
           const text = `${r.title} ${r.snippet ?? ""} ${(r.extensions ?? []).join(" ")}`;
           const url = r.product_link ?? r.link ?? "";
+          // SerpApi's product_id is only present for some listings (mainly
+          // Google Shopping product pages) - most direct retailer links
+          // don't have one. Falling back to array index `i` broke basket
+          // dedup: search result ordering shifts between calls (ads/ranking
+          // change), so re-adding "the same" listing on a later search could
+          // collide with whatever different listing now sits at that index,
+          // silently bumping the wrong basket line's quantity instead of
+          // adding the new product. Hash the retailer+title+link instead -
+          // content-addressed, not position-addressed.
+          const id = r.product_id ? `serpapi-${r.product_id}` : `serpapi-${stableHash(`${r.source ?? ""}|${r.title}|${url}`)}`;
           return {
-            id: `serpapi-${r.product_id ?? i}`,
+            id,
             provider: "serpapi",
             retailer: r.source ?? "Unknown retailer",
             title: r.title as string,

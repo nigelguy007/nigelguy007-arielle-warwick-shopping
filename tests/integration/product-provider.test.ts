@@ -41,6 +41,32 @@ describe("SerpApiProductProvider (mocked HTTP)", () => {
     expect(res.length).toBeGreaterThan(0);
     expect(res[0].currency).toBe("GBP");
   });
+
+  // Regression: without product_id, ids used to fall back to array
+  // position - re-searching after result order shifted (ads/ranking
+  // change, common between two real Google Shopping calls) would give a
+  // different listing the same id as one already in the basket. Basket
+  // "add" dedupes/merges quantity by id (see local.ts's addToBasket), so
+  // that collision silently bumped an unrelated line's quantity instead of
+  // the product the student actually just searched for.
+  it("gives the same listing (no product_id) a stable id even when result order changes between searches", async () => {
+    const duvet = { title: "Single Duvet 10.5 Tog", source: "Dunelm", extracted_price: 14, link: "https://www.dunelm.com/duvet" };
+    const kettle = { title: "1.7L Jug Kettle", source: "Argos", extracted_price: 12, link: "https://www.argos.co.uk/kettle" };
+    const firstOrder: typeof fetch = async () => new Response(JSON.stringify({ shopping_results: [duvet, kettle] }), { status: 200 });
+    const secondOrder: typeof fetch = async () => new Response(JSON.stringify({ shopping_results: [kettle, duvet] }), { status: 200 });
+
+    const first = await new SerpApiProductProvider("key", firstOrder).search({ query: "student essentials" });
+    const second = await new SerpApiProductProvider("key", secondOrder).search({ query: "student essentials" });
+
+    const duvetIdFirst = first.find((r) => r.title === duvet.title)!.id;
+    const duvetIdSecond = second.find((r) => r.title === duvet.title)!.id;
+    const kettleIdFirst = first.find((r) => r.title === kettle.title)!.id;
+    const kettleIdSecond = second.find((r) => r.title === kettle.title)!.id;
+
+    expect(duvetIdFirst).toBe(duvetIdSecond);
+    expect(kettleIdFirst).toBe(kettleIdSecond);
+    expect(duvetIdFirst).not.toBe(kettleIdFirst);
+  });
 });
 
 describe("AwinFeedProductProvider (mocked HTTP)", () => {

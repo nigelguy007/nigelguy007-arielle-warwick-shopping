@@ -113,7 +113,7 @@ export function StoreConnectionsPanel() {
                     {row.status === "searching" && "Looking for a connection…"}
                     {row.status === "found" && "Tap to finish connecting"}
                     {row.status === "connecting" && "Connecting…"}
-                    {row.status === "connected" && "Connected · prices sync automatically"}
+                    {row.status === "connected" && "Saved · doesn't change the prices shown yet"}
                   </div>
                 </div>
                 {row.status === "idle" ? (
@@ -131,7 +131,7 @@ export function StoreConnectionsPanel() {
               </button>
               {isExpanded ? (
                 <div className="flex items-center justify-between px-4 pb-3">
-                  <span className="text-[11.5px] text-muted">Syncing product prices &amp; stock</span>
+                  <span className="text-[11.5px] text-muted">Not wired up to live prices or stock yet</span>
                   <button type="button" onClick={() => disconnect(retailer)} className="text-xs font-bold text-danger">Disconnect</button>
                 </div>
               ) : null}
@@ -147,7 +147,6 @@ export function StoreConnectionsPanel() {
       <AuthorizeSheet
         open={!!authRetailer}
         retailer={authRetailer ?? ""}
-        method={(authRetailer && rows[authRetailer]?.method) || connectionMethodFor(authRetailer ?? "")}
         onCancel={cancelAuth}
         onAllow={allow}
         connecting={connecting}
