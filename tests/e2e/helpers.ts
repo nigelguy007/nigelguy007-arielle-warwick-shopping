@@ -6,8 +6,12 @@ export async function signInAndOnboard(page: Page, opts: { budget?: number } = {
   await page.goto("/login");
   await page.waitForURL((u) => !u.pathname.startsWith("/login"));
   if (page.url().includes("/onboarding")) {
-    await expect(page.getByRole("heading", { name: /Let's get you ready for Warwick/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /First, a bit about you/ })).toBeVisible();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.getByRole("heading", { name: /Let's get .* ready for/ })).toBeVisible();
     await page.getByRole("button", { name: "Start" }).click();
+    await page.getByLabel("I agree to the terms and privacy notice").check();
+    await page.getByRole("button", { name: "Accept & continue" }).click();
     await page.getByRole("button", { name: "Bluebell" }).click();
     await page.getByRole("button", { name: "Next", exact: true }).click();
     if (opts.budget) {

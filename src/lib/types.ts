@@ -100,6 +100,10 @@ export interface Profile {
   id: string;
   firstName: string;
   university: string;
+  /** Free-text town/city (e.g. "Coventry, UK"), captured in onboarding's first step. */
+  universityLocation: string | null;
+  /** e.g. "1st year", "Postgraduate" - free text so it fits any institution's labels. */
+  yearOfStudy: string | null;
   accommodationSlug: string | null;
   defaultPostcode: string | null;
   /** ISO date (YYYY-MM-DD) the student moves into halls. Drives the Home countdown. */
@@ -108,6 +112,10 @@ export interface Profile {
   notifyVoucherExpiry: boolean;
   notifyWeeklyDigest: boolean;
   onboardingComplete: boolean;
+  /** ISO timestamp the terms/privacy notice was accepted, server-stamped (never client-supplied) - GDPR consent proof. Null until step 3 of onboarding. */
+  termsAcceptedAt: string | null;
+  /** Which TERMS_VERSION (src/lib/legal/terms.ts) was accepted, so a later material change can require re-consent. */
+  termsVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }

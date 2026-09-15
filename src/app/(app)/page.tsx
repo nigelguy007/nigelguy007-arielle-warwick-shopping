@@ -15,6 +15,7 @@ export default async function HomePage() {
   const user = await requireUser();
   const d = await loadDashboard(user.id);
   const name = d.profile?.firstName || "there";
+  const university = d.profile?.university || null;
   const status = providerStatus();
   const hallLabel = d.accommodation ? `${d.accommodation.name}` : "Warwick move-in";
   const moveIn = countdownLabel(d.profile?.moveInDate ?? null);
@@ -34,7 +35,10 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <h1 className="font-display text-[28px] leading-none font-extrabold tracking-[-0.5px]">Hi {name}</h1>
+      <div className="flex flex-col gap-0.5">
+        <h1 className="font-display text-[28px] leading-none font-extrabold tracking-[-0.5px]">Hi {name}</h1>
+        {university ? <p className="text-sm text-foreground-secondary">{university}</p> : null}
+      </div>
 
       {moveIn ? <CountdownBanner label={moveIn} alertLines={alertLines} /> : (
         <Link href="/me" className="glass-card flex items-center justify-between px-[18px] py-3.5 text-sm font-semibold text-accent-ink">

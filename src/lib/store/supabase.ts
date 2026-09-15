@@ -69,13 +69,18 @@ function toAccommodation(r: Row): AccommodationProfile {
 function toProfile(r: Row): Profile {
   return {
     id: s(r.id), firstName: s(r.first_name), university: s(r.university),
+    universityLocation: r.university_location == null ? null : s(r.university_location),
+    yearOfStudy: r.year_of_study == null ? null : s(r.year_of_study),
     accommodationSlug: r.accommodation_slug == null ? null : s(r.accommodation_slug),
     defaultPostcode: r.default_postcode == null ? null : s(r.default_postcode),
     moveInDate: r.move_in_date == null ? null : s(r.move_in_date),
     notifyPriceAlerts: r.notify_price_alerts == null ? true : Boolean(r.notify_price_alerts),
     notifyVoucherExpiry: r.notify_voucher_expiry == null ? true : Boolean(r.notify_voucher_expiry),
     notifyWeeklyDigest: Boolean(r.notify_weekly_digest),
-    onboardingComplete: Boolean(r.onboarding_complete), createdAt: s(r.created_at), updatedAt: s(r.updated_at),
+    onboardingComplete: Boolean(r.onboarding_complete),
+    termsAcceptedAt: r.terms_accepted_at == null ? null : s(r.terms_accepted_at),
+    termsVersion: r.terms_version == null ? null : s(r.terms_version),
+    createdAt: s(r.created_at), updatedAt: s(r.updated_at),
   };
 }
 function toBudget(r: Row): Budget {
@@ -126,6 +131,8 @@ export class SupabaseStore implements DataStore, AdminStore {
     const row: Row = { id: userId, updated_at: new Date().toISOString() };
     if (patch.firstName !== undefined) row.first_name = patch.firstName;
     if (patch.university !== undefined) row.university = patch.university;
+    if (patch.universityLocation !== undefined) row.university_location = patch.universityLocation;
+    if (patch.yearOfStudy !== undefined) row.year_of_study = patch.yearOfStudy;
     if (patch.accommodationSlug !== undefined) row.accommodation_slug = patch.accommodationSlug;
     if (patch.defaultPostcode !== undefined) row.default_postcode = patch.defaultPostcode;
     if (patch.moveInDate !== undefined) row.move_in_date = patch.moveInDate;
@@ -133,6 +140,8 @@ export class SupabaseStore implements DataStore, AdminStore {
     if (patch.notifyVoucherExpiry !== undefined) row.notify_voucher_expiry = patch.notifyVoucherExpiry;
     if (patch.notifyWeeklyDigest !== undefined) row.notify_weekly_digest = patch.notifyWeeklyDigest;
     if (patch.onboardingComplete !== undefined) row.onboarding_complete = patch.onboardingComplete;
+    if (patch.termsAcceptedAt !== undefined) row.terms_accepted_at = patch.termsAcceptedAt;
+    if (patch.termsVersion !== undefined) row.terms_version = patch.termsVersion;
     const res = await this.db.from("profiles").upsert(row, { onConflict: "id" }).select("*").single();
     return toProfile(must(res, "profiles upsert") as Row);
   }
