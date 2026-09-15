@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-15",
+  "url": "http://localhost:3001",
+  "healthScore": 99,
+  "issues": [
+    { "id": "ISSUE-001", "title": "Onboarding offered \"Use Warwick campus\" to non-Warwick students", "severity": "high", "category": "functional" },
+    { "id": "ISSUE-002", "title": "Home showed Warwick-specific copy to non-Warwick students", "severity": "high", "category": "content" },
+    { "id": "ISSUE-004", "title": "Terms & privacy notice has literal [APP OPERATOR]/[CONTACT EMAIL] placeholders", "severity": "high", "category": "content" }
+  ],
+  "categoryScores": {
+    "console": 100,
+    "visual": 100,
+    "functional": 100,
+    "ux": 100,
+    "content": 85
+  }
+}
