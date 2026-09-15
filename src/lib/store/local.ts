@@ -188,6 +188,12 @@ export class LocalStore implements DataStore, AdminStore {
   async getAccommodation(slug: string) {
     return this.state.accommodations.find((a) => a.slug === slug) ?? null;
   }
+  /** Local/demo mode has no scraped accommodation_listings dataset - always
+   * "no data yet" rather than fabricating or falling back to the Warwick
+   * seed data above. */
+  async listAccommodationListings() {
+    return [];
+  }
 
   // ---- Budget ----
   async getBudget(userId: string) {

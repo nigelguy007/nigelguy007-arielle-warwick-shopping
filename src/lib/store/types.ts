@@ -1,4 +1,5 @@
 import type {
+  AccommodationListing,
   AccommodationProfile,
   BasketItem,
   Budget,
@@ -58,9 +59,20 @@ export interface DataStore {
   getUserChecklistItem(userId: string, checklistItemId: string): Promise<ChecklistView | null>;
   setChecklistStatus(userId: string, checklistItemId: string, status: ChecklistStatus, patch?: { qty?: number; customNotes?: string; box?: string }): Promise<UserChecklistEntry>;
 
-  // Accommodation
+  // Accommodation - Warwick-specific, hand-verified room facts.
   listAccommodations(): Promise<AccommodationProfile[]>;
   getAccommodation(slug: string): Promise<AccommodationProfile | null>;
+
+  /**
+   * Real per-university accommodation listings scraped from that
+   * university's own pages (see accommodation_listings /
+   * scripts/scrape-accommodation.ts). `universityName` is matched against
+   * data/uk_he_providers.json to resolve a UKPRN; returns [] if there's no
+   * match or nothing scraped for that university yet - callers must show
+   * a "we don't have data yet" state rather than falling back to another
+   * university's listings (e.g. Warwick's).
+   */
+  listAccommodationListings(universityName: string): Promise<AccommodationListing[]>;
 
   // Budget
   getBudget(userId: string): Promise<Budget | null>;

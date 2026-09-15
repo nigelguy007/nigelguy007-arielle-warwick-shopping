@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
+  AccommodationListing,
   AccommodationProfile,
   BasketItem,
   Budget,
@@ -24,6 +25,7 @@ import type { AccommodationSeed, AdminStore, ChecklistImportRow, DataStore } fro
 import { defaultStatusFromTiming } from "./local";
 import { connectionMethodFor } from "@/lib/stores/known-api";
 import { generateShareCode } from "@/lib/sharing/code";
+import { findUkprnForUniversity } from "@/lib/university-lookup";
 
 type Row = Record<string, unknown>;
 
@@ -64,6 +66,24 @@ function toAccommodation(r: Row): AccommodationProfile {
     suppliedAppliances: (r.supplied_appliances as string[]) ?? [],
     prohibitedItems: (r.prohibited_items as string[]) ?? [],
     notes: (r.notes as Record<string, unknown>) ?? {},
+  };
+}
+function toAccommodationListing(r: Row): AccommodationListing {
+  return {
+    id: s(r.id),
+    universityUkprn: s(r.university_ukprn),
+    universityName: s(r.university_name),
+    accommodationName: s(r.accommodation_name),
+    roomType: r.room_type == null ? null : s(r.room_type),
+    weeklyPrice: n(r.weekly_price),
+    contractLength: r.contract_length == null ? null : s(r.contract_length),
+    totalCost: n(r.total_cost),
+    bathroomType: (r.bathroom_type as AccommodationListing["bathroomType"]) ?? null,
+    cateringType: (r.catering_type as AccommodationListing["cateringType"]) ?? null,
+    address: r.address == null ? null : s(r.address),
+    academicYear: r.academic_year == null ? null : s(r.academic_year),
+    sourceUrl: s(r.source_url),
+    lastChecked: s(r.last_checked),
   };
 }
 function toProfile(r: Row): Profile {
@@ -212,6 +232,13 @@ export class SupabaseStore implements DataStore, AdminStore {
     const { data, error } = await this.db.from("accommodation_profiles").select("*").eq("slug", slug).maybeSingle();
     if (error) throw new Error(`accommodation_profiles: ${error.message}`);
     return data ? toAccommodation(data as Row) : null;
+  }
+
+  async listAccommodationListings(universityName: string) {
+    const ukprn = findUkprnForUniversity(universityName);
+    if (!ukprn) return [];
+    const res = await this.db.from("accommodation_listings").select("*").eq("university_ukprn", ukprn).order("accommodation_name");
+    return (must(res, "accommodation_listings") as Row[]).map(toAccommodationListing);
   }
 
   async getBudget(userId: string) {

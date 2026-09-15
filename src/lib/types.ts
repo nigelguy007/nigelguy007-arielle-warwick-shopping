@@ -96,6 +96,32 @@ export interface AccommodationProfile {
   notes: Record<string, unknown>;
 }
 
+/**
+ * A single scraped, sourced accommodation option for a real UK university
+ * (see supabase/migrations/0007_accommodation_listings.sql and
+ * scripts/scrape-accommodation.ts). Distinct from AccommodationProfile
+ * above, which is Warwick-specific hand-verified room data (bed size, hob
+ * type, etc). This only ever carries what was found on the university's
+ * own pricing/contract pages - a null field means "not stated there", not
+ * "assumed".
+ */
+export interface AccommodationListing {
+  id: string;
+  universityUkprn: string;
+  universityName: string;
+  accommodationName: string;
+  roomType: string | null;
+  weeklyPrice: number | null;
+  contractLength: string | null;
+  totalCost: number | null;
+  bathroomType: "ensuite" | "shared" | null;
+  cateringType: "catered" | "self-catered" | null;
+  address: string | null;
+  academicYear: string | null;
+  sourceUrl: string;
+  lastChecked: string;
+}
+
 export interface Profile {
   id: string;
   firstName: string;

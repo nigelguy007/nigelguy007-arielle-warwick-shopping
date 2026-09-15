@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/client/api";
@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/chip";
 import { useLocationContext } from "@/lib/client/location";
 import { TERMS_SECTIONS } from "@/lib/legal/terms";
-import type { AccommodationProfile } from "@/lib/types";
+import { isWarwickUniversityName } from "@/lib/university-match";
+import type { AccommodationListing, AccommodationProfile } from "@/lib/types";
 
 const PRESETS = [100, 200, 300, 500];
 const YEAR_OPTIONS = ["1st year", "2nd year", "3rd year", "4th year", "Postgraduate"];
@@ -34,6 +35,12 @@ export function OnboardingFlow({ accommodations, firstName, university: initialU
   // Steps 3-6 - accommodation / budget / move-in date / location (unchanged from before).
   const [slug, setSlug] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  // Non-Warwick accommodation data: fetched lazily from /api/accommodations/listings
+  // (see DataStore.listAccommodationListings) once the student reaches step 3, since
+  // it depends on whatever they typed as their university in step 0.
+  const [listings, setListings] = useState<AccommodationListing[]>([]);
+  const [listingsStatus, setListingsStatus] = useState<"idle" | "loaded" | "error">("idle");
+  const listingsFetchedRef = useRef(false);
   const [budget, setBudget] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
@@ -98,6 +105,21 @@ export function OnboardingFlow({ accommodations, firstName, university: initialU
 
   const filtered = accommodations.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()));
   const chosen = accommodations.find((a) => a.slug === slug);
+
+  const effectiveUniversity = university.trim() || initialUniversity;
+  const isWarwick = isWarwickUniversityName(effectiveUniversity);
+
+  // Only Warwick has hand-verified accommodation_profiles data (the
+  // `accommodations` prop, seeded above) - every other university is looked
+  // up from the real accommodation_listings dataset instead, and never
+  // shown Warwick's halls. See DataStore.listAccommodationListings.
+  useEffect(() => {
+    if (step !== 3 || isWarwick || listingsFetchedRef.current) return;
+    listingsFetchedRef.current = true;
+    api<{ listings: AccommodationListing[] }>(`/api/accommodations/listings?university=${encodeURIComponent(effectiveUniversity)}`)
+      .then((res) => { setListings(res.listings); setListingsStatus("loaded"); })
+      .catch(() => setListingsStatus("error"));
+  }, [step, isWarwick, effectiveUniversity]);
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-8" style={{ paddingTop: "calc(var(--sat) + 2rem)" }}>
@@ -187,20 +209,47 @@ export function OnboardingFlow({ accommodations, firstName, university: initialU
 
       {step === 3 ? (
         <section className="flex flex-1 flex-col gap-4 pt-8">
-          <h1 className="font-display text-[28px] font-extrabold tracking-[-0.5px]">Which {university.trim() || initialUniversity} accommodation are you staying in?</h1>
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search residences" aria-label="Search residences" />
-          <div className="flex flex-wrap gap-2">
-            {filtered.map((a) => (
-              <Chip key={a.slug} active={slug === a.slug} onClick={() => setSlug(a.slug)}>{a.name}</Chip>
-            ))}
-            <Chip active={slug === null} onClick={() => setSlug(null)}>I don&apos;t know yet</Chip>
-          </div>
-          {chosen ? (
+          <h1 className="font-display text-[28px] font-extrabold tracking-[-0.5px]">Which {effectiveUniversity} accommodation are you staying in?</h1>
+          {isWarwick ? (
+            <>
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search residences" aria-label="Search residences" />
+              <div className="flex flex-wrap gap-2">
+                {filtered.map((a) => (
+                  <Chip key={a.slug} active={slug === a.slug} onClick={() => setSlug(a.slug)}>{a.name}</Chip>
+                ))}
+                <Chip active={slug === null} onClick={() => setSlug(null)}>I don&apos;t know yet</Chip>
+              </div>
+              {chosen ? (
+                <p className="rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">
+                  {chosen.verifiedAt ? "Room details verified from the official Warwick page." : "I haven't verified this residence's room details yet, so I won't guess bed size or hob type. "}
+                  <a href={chosen.officialUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">Official page</a>
+                </p>
+              ) : null}
+            </>
+          ) : listingsStatus === "idle" ? (
+            <p className="text-sm text-foreground-secondary">Checking for accommodation data for {effectiveUniversity}…</p>
+          ) : listingsStatus === "error" ? (
+            <p className="rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">Couldn&apos;t check accommodation data - check your connection and try again, or carry on and add this later.</p>
+          ) : listings.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-foreground-secondary">Pricing and options from {effectiveUniversity}&apos;s own accommodation pages.</p>
+              {listings.map((l) => (
+                <div key={l.id} className="glass-card flex flex-col gap-0.5 px-4 py-3 text-sm">
+                  <div className="font-semibold">{l.accommodationName}{l.roomType ? ` · ${l.roomType}` : ""}</div>
+                  <div className="text-foreground-secondary">
+                    {l.weeklyPrice != null ? `£${l.weeklyPrice}/week` : "Price not listed"}
+                    {l.contractLength ? ` · ${l.contractLength}` : ""}
+                    {l.cateringType ? ` · ${l.cateringType}` : ""}
+                  </div>
+                  <a href={l.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-accent-ink underline">Official page</a>
+                </div>
+              ))}
+            </div>
+          ) : (
             <p className="rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">
-              {chosen.verifiedAt ? "Room details verified from the official Warwick page." : "I haven't verified this residence's room details yet, so I won't guess bed size or hob type. "}
-              <a href={chosen.officialUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">Official page</a>
+              We don&apos;t have verified accommodation data for {effectiveUniversity} yet. You can carry on without it and add this later.
             </p>
-          ) : null}
+          )}
           <div className="mt-auto flex gap-2"><Button variant="ghost" onClick={() => setStep(2)}>Back</Button><Button className="flex-1" size="lg" onClick={() => setStep(4)}>Next</Button></div>
         </section>
       ) : null}

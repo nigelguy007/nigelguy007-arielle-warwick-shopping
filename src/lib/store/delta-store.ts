@@ -152,6 +152,12 @@ export class DeltaStore implements DataStore {
   async getAccommodation(slug: string) {
     return this.base.accommodations.find((a) => a.slug === slug) ?? null;
   }
+  /** Cookie/demo mode has no scraped accommodation_listings dataset -
+   * always "no data yet" rather than fabricating or falling back to the
+   * Warwick seed data above. */
+  async listAccommodationListings() {
+    return [];
+  }
 
   async getBudget() {
     return this.delta.budget;
