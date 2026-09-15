@@ -173,7 +173,7 @@ async function upsertListings(
       last_checked: now,
       updated_at: now,
     }));
-  const { error } = await db.from("accommodation_listings").upsert(rows, { onConflict: "university_ukprn,accommodation_name,room_type,academic_year" });
+  const { error } = await db.from("accommodation_listings").upsert(rows, { onConflict: "university_ukprn,accommodation_name,room_type,contract_length,academic_year" });
   if (error) throw new Error(`upsert failed for ${provider.name}: ${error.message}`);
   return rows.length;
 }
