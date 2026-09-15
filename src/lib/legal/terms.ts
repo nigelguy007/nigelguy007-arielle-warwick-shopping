@@ -15,18 +15,19 @@ export interface TermsSection {
 }
 
 /**
- * Placeholders in ALL CAPS square brackets ([APP OPERATOR], [CONTACT EMAIL])
- * are not real legal detail - swap them for the real operator/contact before
- * this is used with actual users. Nothing here is legal advice; it's a
- * reasonable-faith GDPR-shaped starting point for a small personal-data-
- * collecting app, not a substitute for a lawyer if this becomes a real product.
+ * [APP OPERATOR] is still a placeholder, not real legal detail - swap it for
+ * the real operator name before this is used with actual users (contact
+ * email is already filled in: nemguy@gmail.com). Nothing here is legal
+ * advice; it's a reasonable-faith GDPR-shaped starting point for a small
+ * personal-data-collecting app, not a substitute for a lawyer if this
+ * becomes a real product.
  */
 export const TERMS_SECTIONS: TermsSection[] = [
   {
     heading: "Who this is",
     body: [
       "This app helps you plan and shop for university move-in: a checklist, a budget, price comparisons, and (if you choose) a way to let a parent follow along.",
-      "The app is operated by [APP OPERATOR]. Questions about your data go to [CONTACT EMAIL].",
+      "The app is operated by [APP OPERATOR]. Questions about your data go to nemguy@gmail.com.",
     ],
   },
   {
@@ -58,14 +59,14 @@ export const TERMS_SECTIONS: TermsSection[] = [
   {
     heading: "How long we keep it",
     body: [
-      "For as long as your account is active. If you delete your account, your profile, checklist, basket, purchases and any parent-sharing links are deleted; ask [CONTACT EMAIL] if you'd like this sooner or if account deletion isn't yet available in-app.",
+      "For as long as your account is active. If you delete your account, your profile, checklist, basket, purchases and any parent-sharing links are deleted; ask nemguy@gmail.com if you'd like this sooner or if account deletion isn't yet available in-app.",
     ],
   },
   {
     heading: "Your rights",
     body: [
       "Under UK/EU GDPR you can ask to access, correct, export, or delete your data, object to or restrict how it's used, and withdraw any consent you've given - at any time, free of charge, without it affecting your access to the app's core features.",
-      "To exercise any of these, contact [CONTACT EMAIL]. If you're not satisfied with the response, you can complain to your national data protection authority (in the UK, the ICO - ico.org.uk).",
+      "To exercise any of these, contact nemguy@gmail.com. If you're not satisfied with the response, you can complain to your national data protection authority (in the UK, the ICO - ico.org.uk).",
     ],
   },
   {
