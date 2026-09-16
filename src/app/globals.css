@@ -14,23 +14,29 @@
   --foreground-secondary: oklch(46% 0.025 60);
   --muted: oklch(60% 0.02 60);
 
-  --accent: oklch(52% 0.16 262);
-  --accent-deep: oklch(42% 0.16 262);
-  --accent-ink: oklch(42% 0.16 262);
-  --accent-soft: oklch(93% 0.03 262);
+  /* Sage brand palette, replacing the earlier indigo/teal accent (see the
+     Stitch "Sage Ceramic & Frosted Editorial" design system, seed #919e7d).
+     --accent itself is Stitch's own darker "primary" tone (#566245), not
+     the literal seed hex: #919e7d only clears ~3.1:1 contrast against
+     white/dark text (below WCAG AA's 4.5:1 for normal text), so it's used
+     as --accent-deep and in dark mode instead, where it tests safely. */
+  --accent: oklch(47.8% 0.047 126.4);
+  --accent-deep: oklch(59.5% 0.053 127.3);
+  --accent-ink: oklch(47.8% 0.047 126.4);
+  --accent-soft: oklch(91.1% 0.051 124.3);
   --on-accent: #fff;
 
   --card: oklch(99% 0.005 85 / 0.5);
   --card-border-color: rgba(255, 255, 255, 0.85);
   --card-shadow: 0 4px 16px oklch(24% 0.02 60 / 0.1);
-  --ring-track: oklch(93% 0.03 262);
+  --ring-track: oklch(93% 0.03 125.2);
   --photo-a: oklch(92% 0.012 85);
   --photo-b: oklch(95.5% 0.008 85);
 
   --glass: rgba(255, 255, 255, 0.62);
   --glass-border: rgba(255, 255, 255, 0.8);
   --bar-shadow: 0 12px 32px rgba(16, 20, 29, 0.16);
-  --fab-shadow: 0 12px 28px oklch(52% 0.16 262 / 0.4);
+  --fab-shadow: 0 12px 28px oklch(47.8% 0.047 126.4 / 0.4);
   --row-border: rgba(60, 60, 67, 0.1);
 
   --toast-bg: rgba(16, 20, 29, 0.82);
@@ -64,23 +70,23 @@
     --foreground-secondary: oklch(74% 0.015 250);
     --muted: oklch(55% 0.015 250);
 
-    --accent: oklch(80% 0.13 175);
-    --accent-deep: oklch(66% 0.13 175);
-    --accent-ink: oklch(85% 0.1 175);
-    --accent-soft: oklch(30% 0.05 178);
+    --accent: oklch(82.3% 0.05 124.1);
+    --accent-deep: oklch(68% 0.049 125.2);
+    --accent-ink: oklch(82.3% 0.05 124.1);
+    --accent-soft: oklch(29.6% 0.009 219.8);
     --on-accent: oklch(18% 0.02 250);
 
     --card: rgba(60, 66, 82, 0.32);
     --card-border-color: rgba(255, 255, 255, 0.14);
     --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --ring-track: oklch(32% 0.03 200);
+    --ring-track: oklch(32% 0.03 124.1);
     --photo-a: oklch(28% 0.02 250);
     --photo-b: oklch(32% 0.02 250);
 
     --glass: rgba(120, 125, 140, 0.24);
     --glass-border: rgba(255, 255, 255, 0.16);
     --bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-    --fab-shadow: 0 12px 28px oklch(80% 0.13 175 / 0.3);
+    --fab-shadow: 0 12px 28px oklch(82.3% 0.05 124.1 / 0.3);
     --row-border: rgba(255, 255, 255, 0.08);
 
     --toast-bg: rgba(235, 238, 245, 0.9);
@@ -98,23 +104,23 @@
   --foreground-secondary: oklch(74% 0.015 250);
   --muted: oklch(55% 0.015 250);
 
-  --accent: oklch(80% 0.13 175);
-  --accent-deep: oklch(66% 0.13 175);
-  --accent-ink: oklch(85% 0.1 175);
-  --accent-soft: oklch(30% 0.05 178);
+  --accent: oklch(82.3% 0.05 124.1);
+  --accent-deep: oklch(68% 0.049 125.2);
+  --accent-ink: oklch(82.3% 0.05 124.1);
+  --accent-soft: oklch(29.6% 0.009 219.8);
   --on-accent: oklch(18% 0.02 250);
 
   --card: rgba(60, 66, 82, 0.32);
   --card-border-color: rgba(255, 255, 255, 0.14);
   --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --ring-track: oklch(32% 0.03 200);
+  --ring-track: oklch(32% 0.03 124.1);
   --photo-a: oklch(28% 0.02 250);
   --photo-b: oklch(32% 0.02 250);
 
   --glass: rgba(120, 125, 140, 0.24);
   --glass-border: rgba(255, 255, 255, 0.16);
   --bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --fab-shadow: 0 12px 28px oklch(80% 0.13 175 / 0.3);
+  --fab-shadow: 0 12px 28px oklch(82.3% 0.05 124.1 / 0.3);
   --row-border: rgba(255, 255, 255, 0.08);
 
   --toast-bg: rgba(235, 238, 245, 0.9);
