@@ -55,7 +55,7 @@ export function ChecklistClient({ initialItems, supplied }: { initialItems: Chec
   const [overrides, setOverrides] = useState<Record<string, ChecklistStatus>>({});
   const items = useMemo(() => initialItems.map((i) => (overrides[i.id] ? { ...i, status: overrides[i.id] } : i)), [initialItems, overrides]);
   const [filter, setFilter] = useState<Filter>(() => (FILTERS.some((f) => f.key === params.get("filter")) ? (params.get("filter") as Filter) : "all"));
-  const [category, setCategory] = useState<string>("all");
+  const [category, setCategory] = useState<string>(() => params.get("category") || "all");
   const [q, setQ] = useState("");
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
