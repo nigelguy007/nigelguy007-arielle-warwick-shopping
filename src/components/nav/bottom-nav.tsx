@@ -14,12 +14,9 @@ const TABS = [
 ] as const;
 
 /**
- * The docked bottom bar: a glass tab-bar pill + a diamond FAB, matching the
- * design handoff exactly. The handoff's FAB is a no-op placeholder ("intended
- * for quick add item or similar") - this app already has a real AI agent
- * (14 tools, streaming chat), so the FAB opens that instead of staying inert.
- * Checklist's multi-select mode swaps this whole bar for a bulk-action bar
- * via useDock() - see dock-context.tsx.
+ * The docked bottom bar: a white tab-bar pill + a sage FAB that opens the
+ * AI agent (14 tools, streaming chat). Checklist's multi-select mode swaps
+ * this whole bar for a bulk-action bar via useDock() - see dock-context.tsx.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -61,8 +58,8 @@ export function BottomNav() {
         type="button"
         onClick={() => router.push("/agent")}
         aria-label="Ask Arielle's Agent"
-        className="flex h-15 w-15 shrink-0 items-center justify-center rounded-[30px] border-[0.5px] border-white/35 text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-deep))", boxShadow: "var(--fab-shadow)" }}
+        className="flex h-15 w-15 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        style={{ boxShadow: "var(--fab-shadow)" }}
       >
         <SparkleIcon size={22} />
       </button>

@@ -9,7 +9,7 @@ export function QuickFilterChips({ categories }: { categories: string[] }) {
   const router = useRouter();
   return (
     <ChipRow className="-mx-5 px-5">
-      <Chip onClick={() => router.push("/checklist?filter=essentials")}>Essentials</Chip>
+      <Chip active onClick={() => router.push("/checklist?filter=essentials")}>Essentials</Chip>
       {categories.map((c) => (
         <Chip key={c} onClick={() => router.push(`/checklist?category=${encodeURIComponent(c)}`)}>{c}</Chip>
       ))}

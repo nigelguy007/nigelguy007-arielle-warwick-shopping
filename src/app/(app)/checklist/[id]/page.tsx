@@ -27,7 +27,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     <main className="px-4">
       <PageHeader title="" back="/checklist" />
       <div className="photo-placeholder h-[190px] rounded-[1.375rem] border border-border">
-        <span className="text-xs">product photo — retailer feed</span>
+        <span className="photo-label text-xs">product photo — retailer feed</span>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <Badge>{item.category}</Badge>

@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client/api";
 import { locationParams, readStoredLocation } from "@/lib/client/location";
-import { agoLabel, gbp } from "@/lib/utils";
+import { gbp } from "@/lib/utils";
 import type { CompareResult } from "@/lib/services/compare";
 import type { BuyNextCandidate } from "@/lib/recommendations/buy-next";
 import type { ScoredProduct } from "@/lib/ranking/value-score";
 
-/** Compact 168px horizontal-scroll product card, exact treatment from the
- * design handoff's Home "Buy next" row. Photo is an intentional placeholder
- * pending a live retailer image feed - see .photo-placeholder in globals.css. */
+/** 200x150 photo-style card from the approved Stitch reference: a label
+ * chip top-left, the item name and its best real price over the bottom of
+ * the image. There's no retailer image feed yet, so the "photo" is the
+ * sage gradient placeholder from globals.css rather than a fabricated one. */
 export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
   const router = useRouter();
   const [pick, setPick] = useState<ScoredProduct | null | undefined>(undefined);
@@ -45,43 +46,34 @@ export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
     }
   };
 
-  if (pick === undefined) {
-    return <div className="glass-card h-[190px] w-[168px] shrink-0 animate-pulse" />;
-  }
-  if (pick === null) {
-    return (
-      <button
-        type="button"
-        onClick={() => router.push(`/shop?q=${encodeURIComponent(item.item)}&itemId=${item.id}`)}
-        className="glass-card flex h-[190px] w-[168px] shrink-0 flex-col items-start justify-end p-3 text-left"
-      >
-        <p className="text-[13px] leading-[1.25] font-bold">{item.item}</p>
-        <p className="mt-1 text-[11px] text-accent-ink">Compare prices</p>
-      </button>
-    );
-  }
+  const label = item.priority === "essential" ? "Essential" : item.timing === "buy_before" ? "Before move-in" : null;
+  const subtitle = pick === undefined ? "Checking prices…" : pick === null ? "Compare prices" : `${gbp(pick.effectivePrice)} · ${pick.product.retailer}`;
+  const href = pick ? `/checklist/${item.id}` : `/shop?q=${encodeURIComponent(item.item)}&itemId=${item.id}`;
 
   return (
-    <button type="button" onClick={() => router.push(`/checklist/${item.id}`)} className="glass-card w-[168px] shrink-0 overflow-hidden text-left focus-visible:outline-2 focus-visible:outline-accent">
-      <div className="photo-placeholder h-24">
-        <span className="text-[9px]">photo</span>
-      </div>
-      <div className="flex flex-col gap-1 p-3">
-        <div className="h-[33px] overflow-hidden text-[13px] leading-[1.25] font-bold">{item.item}</div>
-        <div className="truncate text-[11px] text-foreground-secondary">{pick.product.retailer} · {agoLabel(pick.product.checkedAt)}</div>
-        <div className="mt-1 flex items-center justify-between">
-          <span className="tabular text-[15px] font-extrabold">{gbp(pick.effectivePrice)}</span>
-          <span
-            onClick={buy}
-            role="button"
-            tabIndex={0}
-            aria-label={`Mark ${item.item} bought`}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); buy(e as unknown as React.MouseEvent); } }}
-            className="rounded-xl bg-accent px-3 py-[5px] text-[11px] font-bold text-on-accent"
-          >
-            {adding ? "…" : "Buy"}
-          </span>
-        </div>
+    <button
+      type="button"
+      onClick={() => router.push(href)}
+      className="photo-placeholder relative h-[150px] w-[200px] shrink-0 overflow-hidden rounded-[var(--radius-card)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      aria-label={`${item.item}: ${subtitle}`}
+    >
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 100%)" }} />
+      {label ? <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-[#121212]">{label}</span> : null}
+      {pick ? (
+        <span
+          onClick={buy}
+          role="button"
+          tabIndex={0}
+          aria-label={`Mark ${item.item} bought`}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); buy(e as unknown as React.MouseEvent); } }}
+          className="absolute top-3 right-3 rounded-full bg-accent px-3 py-1 text-[11px] font-bold text-on-accent"
+        >
+          {adding ? "…" : "Buy"}
+        </span>
+      ) : null}
+      <div className="absolute right-3 bottom-3 left-3 text-white">
+        <p className="truncate text-[15px] leading-tight font-bold">{item.item}{item.qty > 1 ? ` × ${item.qty}` : ""}</p>
+        <p className={`mt-0.5 truncate text-xs text-white/85 ${pick === undefined ? "animate-pulse" : ""}`}>{subtitle}</p>
       </div>
     </button>
   );
