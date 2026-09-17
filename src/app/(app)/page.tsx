@@ -2,12 +2,15 @@ import Link from "next/link";
 import { MapPin, Percent, GraduationCap, PackageOpen, Info } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { loadDashboard } from "@/lib/services/dashboard";
-import { ProgressRing, CountdownBanner, StatInline } from "@/components/home/home-widgets";
+import { CountdownBanner } from "@/components/home/home-widgets";
 import { DarkToggleButton } from "@/components/home/dark-toggle-button";
 import { GlassIconButton } from "@/components/home/glass-icon-button";
 import { BuyNextCard } from "@/components/home/buy-next-card";
+import { HomeSearchBar } from "@/components/home/home-search-bar";
+import { QuickFilterChips } from "@/components/home/quick-filter-chips";
+import { ReadinessCard } from "@/components/home/readiness-card";
+import { AccommodationCard } from "@/components/home/accommodation-card";
 import { Icon, MISC_ICON_PATH } from "@/components/ui/icons";
-import { gbp } from "@/lib/utils";
 import { providerStatus } from "@/lib/env";
 import { countdownLabel } from "@/lib/checklist/countdown";
 import { isWarwickUniversityName } from "@/lib/university-match";
@@ -24,6 +27,7 @@ export default async function HomePage() {
   const sortedCount = d.summary.total - d.summary.stillNeeded;
   const alertLines: string[] = [];
   if (d.voucherExpiringCount > 0) alertLines.push(`${d.voucherExpiringCount} voucher${d.voucherExpiringCount === 1 ? "" : "s"} expiring`);
+  const categories = [...new Set(d.items.map((i) => i.category))].sort();
 
   return (
     <main className="flex flex-col gap-4 px-5" style={{ paddingTop: "calc(var(--sat) + 1.25rem)" }}>
@@ -42,28 +46,28 @@ export default async function HomePage() {
         {university ? <p className="text-sm text-foreground-secondary">{university}</p> : null}
       </div>
 
+      <HomeSearchBar />
+      {categories.length > 0 ? <QuickFilterChips categories={categories} /> : null}
+
       {moveIn ? <CountdownBanner label={moveIn} alertLines={alertLines} /> : (
         <Link href="/me" className="glass-card flex items-center justify-between px-[18px] py-3.5 text-sm font-semibold text-accent-ink">
           Set your move-in date <span>→</span>
         </Link>
       )}
 
-      <div className="flex flex-col items-center gap-2.5 py-1">
-        <ProgressRing done={sortedCount} total={d.summary.total} centerLabel={`of ${d.summary.total} sorted`} />
-        <StatInline
-          items={[
-            { label: "left", value: d.budgetSummary.remaining === null ? "—" : gbp(d.budgetSummary.remaining) },
-            { label: "to buy", value: `${d.summary.total - sortedCount}`, href: "/checklist?filter=needed" },
-            { label: "packed", value: `${d.summary.packed}`, href: "/checklist?filter=packed" },
-          ]}
-        />
-      </div>
+      <ReadinessCard sorted={sortedCount} total={d.summary.total} budgetRemaining={d.budgetSummary.remaining} toBuy={d.summary.total - sortedCount} packed={d.summary.packed} />
 
       {status.mockVisible ? (
         <p className="flex items-start gap-2 rounded-2xl bg-accent-soft px-4 py-2 text-xs text-accent-ink">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Development mode: prices, shops and offers are mock data, not live.
         </p>
       ) : null}
+
+      <div className="flex items-baseline justify-between">
+        <div className="font-display text-xl font-extrabold">Your accommodation</div>
+        <Link href="/me" className="text-sm font-bold text-accent-ink">Details</Link>
+      </div>
+      <AccommodationCard accommodation={d.accommodation} />
 
       <div className="flex items-baseline justify-between">
         <div className="font-display text-xl font-extrabold">Buy next</div>

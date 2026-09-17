@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client/api";
 import { locationParams, readStoredLocation } from "@/lib/client/location";
-import { gbp } from "@/lib/utils";
+import { agoLabel, gbp } from "@/lib/utils";
 import type { CompareResult } from "@/lib/services/compare";
 import type { BuyNextCandidate } from "@/lib/recommendations/buy-next";
 import type { ScoredProduct } from "@/lib/ranking/value-score";
@@ -68,7 +68,7 @@ export function BuyNextCard({ candidate }: { candidate: BuyNextCandidate }) {
       </div>
       <div className="flex flex-col gap-1 p-3">
         <div className="h-[33px] overflow-hidden text-[13px] leading-[1.25] font-bold">{item.item}</div>
-        <div className="text-[11px] text-foreground-secondary">{pick.product.retailer}</div>
+        <div className="truncate text-[11px] text-foreground-secondary">{pick.product.retailer} · {agoLabel(pick.product.checkedAt)}</div>
         <div className="mt-1 flex items-center justify-between">
           <span className="tabular text-[15px] font-extrabold">{gbp(pick.effectivePrice)}</span>
           <span
