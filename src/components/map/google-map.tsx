@@ -51,8 +51,8 @@ export function GoogleMap({ apiKey, center, stores, selectedId, onSelect }: { ap
         for (const m of markersRef.current) m.setMap(null);
         markersRef.current = [];
         const success = token("--success", "#1f8a4c");
-        const accent = token("--accent", "#2447a8");
-        const accentDeep = token("--accent-deep", "#173776");
+        const accent = token("--accent", "#566245");
+        const accentDeep = token("--accent-deep", "#768563");
         const onAccent = token("--on-accent", "#fff");
         new google.maps.Marker({ position: center, map: mapRef.current, title: "You", icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: success, fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 } });
         const bounds = new google.maps.LatLngBounds();
