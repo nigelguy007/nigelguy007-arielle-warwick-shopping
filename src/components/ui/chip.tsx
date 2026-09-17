@@ -7,7 +7,7 @@ export function Chip({ active, className, children, ...props }: React.ButtonHTML
       type="button"
       aria-pressed={active}
       className={cn(
-        "tap shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "tap shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         active ? "border-accent bg-accent text-on-accent" : "border-[var(--card-border-color)] bg-card text-foreground hover:bg-black/5",
         className,
       )}

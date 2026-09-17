@@ -11,7 +11,7 @@ function Line({ d, size = 20, sw = 1.8, hydrationSensitive, ...props }: { d: str
       {/* suppressHydrationWarning: only set true for icons whose path is
           allowed to legitimately differ between server and client render
           (e.g. the dark-mode toggle, which depends on system preference
-          that SSR can't know) - see dark-toggle-button.tsx. */}
+          that SSR can't know) - see the Me page theme toggle. */}
       <path d={d} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" suppressHydrationWarning={hydrationSensitive} />
     </svg>
   );

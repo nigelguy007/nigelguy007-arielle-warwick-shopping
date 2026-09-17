@@ -1,9 +1,8 @@
 "use client";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** 40x40 glass circle icon button - header dark-mode toggle, notification
- * bell, back button. Exact treatment from the design handoff. */
+/** Circle icon button - header notification bell, dark-mode toggle, back button. */
 export function GlassIconButton({
   onClick,
   href,
@@ -11,6 +10,7 @@ export function GlassIconButton({
   children,
   badge,
   className,
+  style,
 }: {
   onClick?: () => void;
   href?: string;
@@ -18,6 +18,7 @@ export function GlassIconButton({
   children: ReactNode;
   badge?: number;
   className?: string;
+  style?: CSSProperties;
 }) {
   const Tag = href ? "a" : "button";
   return (
@@ -25,13 +26,12 @@ export function GlassIconButton({
       {...(href ? { href } : { type: "button" })}
       onClick={onClick}
       aria-label={label}
+      style={style}
       className={cn("glass tap relative flex h-10 w-10 items-center justify-center rounded-full text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent", className)}
     >
       {children}
       {badge ? (
-        <span className="absolute top-1.5 right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white" style={{ background: "var(--danger-badge)" }}>
-          {badge}
-        </span>
+        <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full ring-2 ring-[var(--card)]" style={{ background: "var(--danger-badge)" }} aria-hidden />
       ) : null}
     </Tag>
   );
