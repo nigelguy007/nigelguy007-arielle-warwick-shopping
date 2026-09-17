@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "success";
 type Size = "sm" | "md" | "lg";
 
-// text-on-accent (not text-white): in dark mode the accent is a light teal,
+// text-on-accent (not text-white): in dark mode the accent is a light sage,
 // so on-accent text must be dark ink, not white - a real bug found in this
 // pass carried over from the previous design system.
 const variants: Record<Variant, string> = {
