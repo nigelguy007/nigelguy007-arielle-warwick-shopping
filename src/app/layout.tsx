@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Literata } from "next/font/google";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/client/theme";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 
-// Display/headers only, per the design handoff - body/UI text uses the
-// system font stack (set in globals.css), not a second webfont.
-const display = Manrope({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-display-raw", display: "swap" });
+// Display/headers only - body/UI text uses the system font stack (set in
+// globals.css), not a second webfont. Literata per the Stitch sage design
+// system's serif editorial headlines.
+const display = Literata({ subsets: ["latin"], weight: ["600", "700"], style: ["normal", "italic"], variable: "--font-display-raw", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "UniKit", template: "%s · UniKit" },
