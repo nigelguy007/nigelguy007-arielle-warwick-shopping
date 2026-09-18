@@ -84,10 +84,18 @@ export class SerpApiProductProvider implements ProductSearchProvider {
         params.set("location", input.location.label);
       }
       if (input.maxPrice) params.set("tbs", `mr:1,price:1,ppr_max:${Math.ceil(input.maxPrice)}`);
-      // A first-time query has to be scraped by Google Shopping (SerpApi
-      // serves repeats from its own cache in well under a second); 15s
-      // aborted a meaningful share of cold queries in production.
-      const res = await this.fetchImpl(`https://serpapi.com/search.json?${params.toString()}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(25_000) });
+      // A first-time query has to be scraped by Google Shopping and can run
+      // past 25s; SerpApi keeps working after the client gives up and serves
+      // the same query from its own cache in ~1s, so one retry after a
+      // timeout almost always succeeds instead of surfacing "try again".
+      const url = `https://serpapi.com/search.json?${params.toString()}`;
+      let res: Response;
+      try {
+        res = await this.fetchImpl(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(25_000) });
+      } catch (err) {
+        if (!(err instanceof Error && err.name === "TimeoutError")) throw err;
+        res = await this.fetchImpl(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(15_000) });
+      }
       if (!res.ok) throw new Error(`SerpApi responded ${res.status}`);
       const json = (await res.json()) as { shopping_results?: SerpShoppingResult[]; error?: string };
       if (json.error) throw new Error(`SerpApi error: ${json.error}`);
