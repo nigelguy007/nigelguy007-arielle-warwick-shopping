@@ -308,6 +308,8 @@ export const RETAILERS = [
   "Dunelm",
   "IKEA",
   "Tesco",
+  "Aldi",
+  "Iceland",
   "Sainsbury's",
   "Boots",
   "Superdrug",

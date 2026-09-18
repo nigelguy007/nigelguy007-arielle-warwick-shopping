@@ -8,6 +8,8 @@ import { parseLocation } from "@/lib/services/location";
 import { defaultLocationFor } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+// One live price search per basket line; cold SerpApi queries take 10-20s each.
+export const maxDuration = 60;
 const MODES: OptimiseMode[] = ["cheapest", "best_value", "one_shop", "local_today", "online_only", "student_deals"];
 
 export async function POST(req: Request) {

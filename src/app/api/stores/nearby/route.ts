@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   if (!location?.coords) return badRequest("Share your location or enter a postcode to see nearby shops.");
   const categories = (p.get("categories") ?? "").split(",").filter((c): c is StoreCategory => (CATEGORIES as string[]).includes(c));
   try {
-    const res = await nearbyStores({ center: location.coords, categories: categories.length ? categories : undefined, retailer: p.get("retailer") ?? undefined, radiusMeters: p.get("radius") ? Number(p.get("radius")) : undefined, limit: 20 }, { refresh: p.get("refresh") === "1" });
+    const res = await nearbyStores({ center: location.coords, categories: categories.length ? categories : undefined, retailer: p.get("retailer") ?? undefined, radiusMeters: p.get("radius") ? Number(p.get("radius")) : undefined, limit: 30 }, { refresh: p.get("refresh") === "1" });
     return Response.json({ ...res, location, note: "Store existence and opening data only. This does not confirm an item is in stock at this branch." });
   } catch (err) {
     return handleError("stores.nearby", err);

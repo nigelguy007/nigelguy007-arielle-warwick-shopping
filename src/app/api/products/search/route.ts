@@ -4,6 +4,8 @@ import { compareProducts } from "@/lib/services/compare";
 import { parseLocation } from "@/lib/services/location";
 
 export const dynamic = "force-dynamic";
+// A cold Google Shopping query via SerpApi can take 10-20s.
+export const maxDuration = 60;
 
 export async function GET(req: Request) {
   const user = await requireUserOr401();

@@ -84,7 +84,10 @@ export class SerpApiProductProvider implements ProductSearchProvider {
         params.set("location", input.location.label);
       }
       if (input.maxPrice) params.set("tbs", `mr:1,price:1,ppr_max:${Math.ceil(input.maxPrice)}`);
-      const res = await this.fetchImpl(`https://serpapi.com/search.json?${params.toString()}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(15_000) });
+      // A first-time query has to be scraped by Google Shopping (SerpApi
+      // serves repeats from its own cache in well under a second); 15s
+      // aborted a meaningful share of cold queries in production.
+      const res = await this.fetchImpl(`https://serpapi.com/search.json?${params.toString()}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(25_000) });
       if (!res.ok) throw new Error(`SerpApi responded ${res.status}`);
       const json = (await res.json()) as { shopping_results?: SerpShoppingResult[]; error?: string };
       if (json.error) throw new Error(`SerpApi error: ${json.error}`);
@@ -130,7 +133,15 @@ export class SerpApiProductProvider implements ProductSearchProvider {
             deliveryDays: delivery.days,
           };
         });
-      return results.filter((r) => !(input.excludedAttributes ?? []).some((a) => r.attributes.includes(a)));
+      // Google Shopping repeats the same listing (ad + organic slot), which
+      // showed up as identical rows in the compare list.
+      const seen = new Set<string>();
+      return results.filter((r) => {
+        const key = `${r.retailer}|${r.title}|${r.currentPrice}|${r.productUrl}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return !(input.excludedAttributes ?? []).some((a) => r.attributes.includes(a));
+      });
     });
   }
 }

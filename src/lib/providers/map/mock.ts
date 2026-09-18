@@ -12,8 +12,20 @@ interface MockStore {
 // Illustrative mock stores placed around Coventry / Leamington / Warwick.
 // Coordinates and addresses are approximate and labelled as mock in the UI.
 const STORES: MockStore[] = [
-  { name: "Tesco Extra Cannon Park", retailerKey: "Tesco", category: "supermarket", address: "Cannon Park Shopping Centre, Coventry CV4 7EH", location: { lat: 52.3945, lng: -1.5525 } },
-  { name: "Boots Cannon Park", retailerKey: "Boots", category: "pharmacy", address: "Cannon Park Shopping Centre, Coventry CV4 7EH", location: { lat: 52.3947, lng: -1.5528 } },
+  // Cannon Park Shopping Centre (Lynchgate Road, next to Warwick campus) -
+  // tenants per cannonparkshopping.co.uk/stores; only the ones relevant to
+  // a move-in shop are listed (no cafes, barbers, travel agents etc.).
+  { name: "Cannon Park Shopping Centre", retailerKey: "", category: "shopping_centre", address: "Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3946, lng: -1.5527 } },
+  { name: "Tesco Extra Cannon Park", retailerKey: "Tesco", category: "supermarket", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3945, lng: -1.5525 } },
+  { name: "Aldi Cannon Park", retailerKey: "Aldi", category: "supermarket", address: "7 Shultern Lane, Coventry CV4 7AN", location: { lat: 52.3936, lng: -1.5545 } },
+  { name: "Iceland Cannon Park", retailerKey: "Iceland", category: "supermarket", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3948, lng: -1.5530 } },
+  { name: "Boots Cannon Park", retailerKey: "Boots", category: "pharmacy", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3947, lng: -1.5528 } },
+  { name: "Holland & Barrett Cannon Park", retailerKey: "Holland & Barrett", category: "pharmacy", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3947, lng: -1.5531 } },
+  { name: "OneBeyond Cannon Park", retailerKey: "OneBeyond", category: "home_goods", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3949, lng: -1.5526 } },
+  { name: "Bargain Buys Cannon Park", retailerKey: "Bargain Buys", category: "home_goods", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3949, lng: -1.5529 } },
+  { name: "CeX Cannon Park", retailerKey: "CeX", category: "electronics", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3946, lng: -1.5532 } },
+  { name: "Peacocks Cannon Park", retailerKey: "Peacocks", category: "clothing", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3944, lng: -1.5530 } },
+  { name: "Sports Direct Cannon Park", retailerKey: "Sports Direct", category: "clothing", address: "Cannon Park Shopping Centre, Lynchgate Road, Coventry CV4 7EH", location: { lat: 52.3944, lng: -1.5527 } },
   { name: "Sainsbury's Kenilworth", retailerKey: "Sainsbury's", category: "supermarket", address: "Warwick Road, Kenilworth CV8 1FN", location: { lat: 52.3427, lng: -1.5713 } },
   { name: "Argos Coventry Central Six", retailerKey: "Argos", category: "home_goods", address: "Central Six Retail Park, Coventry CV3 6TA", location: { lat: 52.3987, lng: -1.5188 } },
   { name: "Currys Coventry", retailerKey: "Currys", category: "electronics", address: "Central Six Retail Park, Coventry CV3 6TA", location: { lat: 52.3991, lng: -1.5195 } },
