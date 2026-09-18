@@ -133,11 +133,12 @@ export class SerpApiProductProvider implements ProductSearchProvider {
             deliveryDays: delivery.days,
           };
         });
-      // Google Shopping repeats the same listing (ad + organic slot), which
-      // showed up as identical rows in the compare list.
+      // Google Shopping repeats the same listing (ad + organic slot, or two
+      // product ids for one product), which showed up as identical rows in
+      // the compare list. Same retailer, title and price is one listing.
       const seen = new Set<string>();
       return results.filter((r) => {
-        const key = `${r.retailer}|${r.title}|${r.currentPrice}|${r.productUrl}`;
+        const key = `${r.retailer}|${r.title}|${r.currentPrice}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return !(input.excludedAttributes ?? []).some((a) => r.attributes.includes(a));
