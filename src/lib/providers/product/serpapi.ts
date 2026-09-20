@@ -94,7 +94,7 @@ export class SerpApiProductProvider implements ProductSearchProvider {
         res = await this.fetchImpl(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(25_000) });
       } catch (err) {
         if (!(err instanceof Error && err.name === "TimeoutError")) throw err;
-        res = await this.fetchImpl(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(15_000) });
+        res = await this.fetchImpl(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(25_000) });
       }
       if (!res.ok) throw new Error(`SerpApi responded ${res.status}`);
       const json = (await res.json()) as { shopping_results?: SerpShoppingResult[]; error?: string };
